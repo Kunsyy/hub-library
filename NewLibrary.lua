@@ -302,6 +302,35 @@ function Library:ApplyAutoload()
     return n
 end
 
+-- ============================================================
+--  KEY VALIDATOR (ambil daftar key dari URL)
+--  Support format: {"keys":[...]} | ["k1","k2"] | newline/comma list
+-- ============================================================
+function Library:MakeKeyValidator(url)
+    return function(key)
+        local ok, body = pcall(function() return game:HttpGet(url) end)
+        if not ok or not body or body == "" then return false end
+        key = tostring(key):gsub("%s", "")
+        if key == "" then return false end
+        -- coba JSON dulu
+        local okj, decoded = pcall(function() return HttpService:JSONDecode(body) end)
+        if okj and type(decoded) == "table" then
+            local list = decoded.keys or decoded
+            if type(list) == "table" then
+                for _, k in ipairs(list) do
+                    if tostring(k):gsub("%s","") == key then return true end
+                end
+                return false
+            end
+        end
+        -- fallback: list dipisah newline/koma
+        for line in tostring(body):gmatch("[^\r\n,]+") do
+            if line:gsub("%s","") == key then return true end
+        end
+        return false
+    end
+end
+
 function Library:createDisplayMessage(title, desc, buttons, style)
     local accents = { info = Theme.Accent, warning = Color3.fromRGB(235,180,60), danger = Color3.fromRGB(235,70,90) }
     local accent = accents[style] or accents.info

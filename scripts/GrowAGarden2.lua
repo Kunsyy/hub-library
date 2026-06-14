@@ -40,10 +40,11 @@ local Setup = Library:Setup({
     Discord  = "discord.gg/yourserver",
     Version  = "v1.0 (WIP)",
     Game     = "Grow A Garden 2",
-    -- KEY SYSTEM (uncomment buat aktifin — key UI bakal muncul sebelum hub kebuka)
-    -- KeyValidator = function(key)
-    --     return key == "kunsy123"   -- ganti dengan validasi server kamu
-    -- end,
+    -- KEY SYSTEM: ambil daftar key dari keys.json di GitHub.
+    -- Nambah/hapus key = edit keys.json, nggak usah ubah script ini.
+    KeyValidator = Library:MakeKeyValidator(
+        "https://raw.githubusercontent.com/Kunsyy/hub-library/main/keys.json"
+    ),
 })
 
 -- ===== TAB: FARM =====
