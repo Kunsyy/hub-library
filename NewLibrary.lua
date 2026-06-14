@@ -1388,4 +1388,6 @@ function Library:Setup(config)
     return setup
 end
 
-return setmetatable({}, Library)
+local _lib = setmetatable({}, Library)
+_G.HubLibrary = _lib  -- fallback untuk executor yang drop loadstring return value
+return _lib
