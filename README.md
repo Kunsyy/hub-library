@@ -2,7 +2,7 @@
 
 Load with one line:
 ```lua
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/main/NewLibrary.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/master/NewLibrary.lua"))()
 ```
 
 ---
@@ -10,7 +10,7 @@ local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsy
 ## Quick Start
 
 ```lua
-local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/main/NewLibrary.lua"))()
+local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/master/NewLibrary.lua"))()
 
 local Setup = Library:Setup({
     Location = game:GetService("CoreGui"),
