@@ -8,7 +8,7 @@ compatibility_date = "2025-01-01"
 # terus paste id-nya ke sini.
 [[kv_namespaces]]
 binding = "KEYS"
-id = "PASTE_KV_ID_HERE"
+id = "87ee0e470c1444eb90d99044c50e794e"
 
 # ADMIN_SECRET di-set lewat:
 #   npx wrangler secret put ADMIN_SECRET

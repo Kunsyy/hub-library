@@ -40,14 +40,12 @@ local Setup = Library:Setup({
     Discord  = "discord.gg/yourserver",
     Version  = "v1.0 (WIP)",
     Game     = "Grow A Garden 2",
-    -- ===== KEY SYSTEM =====
-    -- Fase awal (statik, tanpa HWID/tier) — daftar key dari keys.json:
-    KeyValidator = Library:MakeKeyValidator(
-        "https://raw.githubusercontent.com/Kunsyy/hub-library/main/keys.json"
-    ),
-    -- Fase web (server + HWID + tier) — aktifin pas Worker live, matiin yg atas:
-    -- KeyValidator = Library:MakeServerValidator("https://kunsydev.xyz"),
-    --   (atau https://api.kunsydev.xyz tergantung route Worker)
+    -- ===== KEY SYSTEM (server + HWID + tier) =====
+    -- Worker live di workers.dev (sementara). Nanti ganti ke https://api.kunsydev.xyz
+    -- pas domain aktif. Nambah/kelola key lewat admin endpoint (lihat server/README.md).
+    KeyValidator = Library:MakeServerValidator("https://kunsy-hub-keys.buatprojex.workers.dev"),
+    -- Fase awal statik (tanpa HWID/tier) — kalau mau balik ke keys.json:
+    -- KeyValidator = Library:MakeKeyValidator("https://raw.githubusercontent.com/Kunsyy/hub-library/main/keys.json"),
 })
 
 -- ===== TAB: FARM =====
