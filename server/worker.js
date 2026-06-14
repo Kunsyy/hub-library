@@ -23,9 +23,9 @@
 const TIERS = {
   free:      { premium: false, days: 1,    devices: 1 },
   ads:       { premium: true,  days: 1,    devices: 1 },
-  monthly:   { premium: true,  days: 30,   devices: 1 },
-  yearly:    { premium: true,  days: 365,  devices: 2 },
-  permanent: { premium: true,  days: null, devices: 3 },
+  monthly:   { premium: true,  days: 30,   devices: 3 },
+  yearly:    { premium: true,  days: 365,  devices: 10 },
+  permanent: { premium: true,  days: null, devices: 25 },
 };
 
 // sumber file asli (buat /raw proxy)
