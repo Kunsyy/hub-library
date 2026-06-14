@@ -16,12 +16,10 @@
          "NamaGame": { "ids": [PLACEID], "script": "NamaGame" }
 --]]
 
--- ⚙️ SUMBER FILE — pilih salah satu:
---   GitHub (fase awal, file kebaca di browser):
-local REPO = "https://raw.githubusercontent.com/Kunsyy/hub-library/main/"
---   Web/Worker (browser ke-404, cuma executor yg bisa) — aktifin pas Worker live:
--- local REPO = "https://kunsydev.xyz/raw/"
---   (atau https://api.kunsydev.xyz/raw/ tergantung route Worker kamu)
+-- ⚙️ SUMBER FILE: lewat Worker (browser -> 404, cuma executor bisa, update ~30 detik)
+local REPO = "https://api.kunsydev.xyz/raw/"
+--   Fallback GitHub langsung (file kebaca di browser):
+-- local REPO = "https://raw.githubusercontent.com/Kunsyy/hub-library/main/"
 
 -- fetch dengan cache-busting (executor kayak Potasium suka nge-cache HttpGet)
 local function fetch(file)

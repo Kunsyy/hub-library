@@ -100,19 +100,29 @@ export default {
         return json({ error: "unknown admin route" }, 404);
       }
 
-      // ---------- RAW PROXY (browser-gated) ----------
+      // ---------- RAW PROXY (browser-gated, fresh via GitHub API) ----------
       if (path.startsWith("/raw/")) {
         if (!rawAllowed(request, env)) {
           return new Response("404 Not Found", { status: 404 });
         }
-        const file = path.slice(5); // buang "/raw/"
-        const res = await fetch(GITHUB_BASE + file, {
-          cf: { cacheTtl: 0 },
-        });
-        if (!res.ok) return new Response("Not found", { status: 404 });
+        const file = path.slice(5); // buang "/raw/" (tanpa query)
+        // Ambil dari GitHub API (fresh, bukan raw CDN yg cache ~5menit).
+        // Edge-cache 30 detik biar update cepet TAPI aman dari rate limit.
+        const apiUrl = `https://api.github.com/repos/Kunsyy/hub-library/contents/${file}?ref=main`;
+        const ghHeaders = {
+          "Accept": "application/vnd.github.raw",
+          "User-Agent": "kunsy-hub-worker",
+        };
+        if (env.GH_TOKEN) ghHeaders["Authorization"] = "Bearer " + env.GH_TOKEN;
+        let res = await fetch(apiUrl, { headers: ghHeaders, cf: { cacheTtl: 30, cacheEverything: true } });
+        if (!res.ok) {
+          // fallback ke raw CDN kalau API gagal
+          res = await fetch(GITHUB_BASE + file, { cf: { cacheTtl: 30 } });
+          if (!res.ok) return new Response("Not found", { status: 404 });
+        }
         const body = await res.text();
         return new Response(body, {
-          headers: { "Content-Type": "text/plain" },
+          headers: { "Content-Type": "text/plain", "Cache-Control": "public, max-age=30" },
         });
       }
 
