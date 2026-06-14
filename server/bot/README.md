@@ -3,9 +3,9 @@
 Bot key gratis via slash command. Jalan di Cloudflare Worker (gratis), share KV yang sama dengan key server.
 
 ## Commands
-- `/getkey` — user dapet key free (1 hari, 1 device), cooldown 24 jam/user
-- `/resethwid <key>` — user reset device lock key sendiri (cooldown 12 jam)
-- `/keyinfo <key>` — cek tier/device/expiry sebuah key
+- `/getkey` — **semua orang**: dapet key free (1 hari, 1 device), cooldown 24 jam/user
+- `/keyinfo <key>` — **semua orang**: cek tier/device/expiry sebuah key
+- `/resethwid <key>` — **khusus staff** (role tertentu): reset device lock key siapa aja
 
 ---
 
@@ -22,6 +22,9 @@ cd server/bot
 npx wrangler deploy
 # set public key (dari General Information)
 npx wrangler secret put DISCORD_PUBLIC_KEY
+# set role staff yg boleh /resethwid (Role ID Discord — aktifin Developer Mode,
+# klik kanan role -> Copy Role ID)
+npx wrangler secret put RESET_ROLE_ID
 ```
 Dapet URL: `https://kunsy-hub-bot.<akun>.workers.dev`
 

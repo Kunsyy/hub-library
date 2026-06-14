@@ -10,6 +10,7 @@
  *
  * Env (set via wrangler secret):
  *   DISCORD_PUBLIC_KEY  (verifikasi signature)
+ *   RESET_ROLE_ID       (role ID Discord yg boleh pakai /resethwid)
  * Bindings:
  *   KEYS   -> KV namespace yang sama dgn key server
  *
@@ -19,7 +20,7 @@
 // ====== tier yg boleh dikasih bot ======
 const FREE_TIER = { tier: "free", premium: false, days: 1, devices: 1 };
 const GETKEY_COOLDOWN_H = 24;   // jeda /getkey per user (jam)
-const RESET_COOLDOWN_H  = 12;   // jeda /resethwid per user (jam)
+// /resethwid khusus role staff (env.RESET_ROLE_ID), tanpa cooldown
 
 // ====== helpers ======
 function hexToBytes(hex) {
@@ -86,21 +87,18 @@ async function cmdGetKey(userId, env) {
   );
 }
 
-async function cmdResetHwid(userId, keyArg, env) {
+// HANYA role tertentu (staff) yang boleh. Bisa reset key siapa aja (bantu user).
+async function cmdResetHwid(member, keyArg, env) {
+  const roles = (member && member.roles) || [];
+  if (!env.RESET_ROLE_ID || !roles.includes(env.RESET_ROLE_ID)) {
+    return reply("❌ You don't have permission. Ask staff to reset your HWID.");
+  }
   const raw = await env.KEYS.get(keyArg);
   if (!raw) return reply("❌ Key not found.");
   const rec = JSON.parse(raw);
-  if (rec.owner && rec.owner !== userId) return reply("❌ This key isn't linked to your account.");
-  const rlKey = "rl:reset:" + userId;
-  const last = await env.KEYS.get(rlKey);
-  if (last) {
-    const h = hoursLeft(Number(last), RESET_COOLDOWN_H);
-    return reply(`⏳ You can reset again in **${h}h**.`);
-  }
   rec.hwids = [];
   await env.KEYS.put(keyArg, JSON.stringify(rec));
-  await env.KEYS.put(rlKey, String(Date.now()), { expirationTtl: RESET_COOLDOWN_H * 3600 });
-  return reply("✅ HWID reset. You can now use the key on a new device.");
+  return reply(`✅ HWID reset for key \`${keyArg}\`. User can re-bind on a new device.`);
 }
 
 async function cmdKeyInfo(keyArg, env) {
@@ -139,7 +137,7 @@ export default {
       for (const o of body.data?.options || []) opts[o.name] = o.value;
 
       if (name === "getkey")    return await cmdGetKey(userId, env);
-      if (name === "resethwid") return await cmdResetHwid(userId, String(opts.key || ""), env);
+      if (name === "resethwid") return await cmdResetHwid(body.member, String(opts.key || ""), env);
       if (name === "keyinfo")   return await cmdKeyInfo(String(opts.key || ""), env);
       return reply("Unknown command.");
     }
