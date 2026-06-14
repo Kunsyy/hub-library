@@ -41,11 +41,9 @@ local Setup = Library:Setup({
     Version  = "v1.0 (WIP)",
     Game     = "Grow A Garden 2",
     -- ===== KEY SYSTEM (server + HWID + tier) =====
-    -- Worker live di workers.dev (sementara). Nanti ganti ke https://api.kunsydev.xyz
-    -- pas domain aktif. Nambah/kelola key lewat admin endpoint (lihat server/README.md).
-    KeyValidator = Library:MakeServerValidator("https://kunsy-hub-keys.buatprojex.workers.dev"),
-    -- Fase awal statik (tanpa HWID/tier) — kalau mau balik ke keys.json:
-    -- KeyValidator = Library:MakeKeyValidator("https://raw.githubusercontent.com/Kunsyy/hub-library/main/keys.json"),
+    -- Validasi key + HWID lewat api.kunsydev.xyz. Kelola key via admin endpoint
+    -- (lihat server/README.md). Tier: free/ads/monthly/yearly/permanent.
+    KeyValidator = Library:MakeServerValidator("https://api.kunsydev.xyz"),
 })
 
 -- ===== TAB: FARM =====
