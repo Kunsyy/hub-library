@@ -303,8 +303,9 @@ function Library:ApplyAutoload()
 end
 
 -- ============================================================
---  KEY VALIDATOR (ambil daftar key dari URL)
+--  KEY VALIDATOR (statik) — ambil daftar key dari URL
 --  Support format: {"keys":[...]} | ["k1","k2"] | newline/comma list
+--  (buat fase awal tanpa server; nggak ada HWID/tier)
 -- ============================================================
 function Library:MakeKeyValidator(url)
     return function(key)
@@ -330,6 +331,63 @@ function Library:MakeKeyValidator(url)
         return false
     end
 end
+
+-- ============================================================
+--  HWID helper
+-- ============================================================
+local function getHWID()
+    local ok, id = pcall(function()
+        if gethwid then return gethwid() end
+        if syn and syn.crypt and gethwid then return gethwid() end
+        return game:GetService("RbxAnalyticsService"):GetClientId()
+    end)
+    return (ok and id and tostring(id)) or "unknown-hwid"
+end
+Library.GetHWID = function() return getHWID() end
+
+-- cari fungsi request executor (buat POST)
+local function getRequestFn()
+    return (syn and syn.request) or (http and http.request) or http_request or request
+end
+
+-- ============================================================
+--  SERVER VALIDATOR (Cloudflare Worker) — key + HWID + tier
+--  baseUrl contoh: "https://kunsy-hub-keys.xxx.workers.dev"
+--  Set self._premium dari response. Return true/false ke key UI.
+-- ============================================================
+function Library:MakeServerValidator(baseUrl)
+    baseUrl = tostring(baseUrl):gsub("/+$", "")
+    local lib = self
+    return function(key)
+        local req = getRequestFn()
+        if not req then
+            warn("[Hub] Executor nggak support HTTP request (POST).")
+            return false
+        end
+        local hwid = getHWID()
+        local ok, res = pcall(function()
+            return req({
+                Url = baseUrl .. "/validate",
+                Method = "POST",
+                Headers = { ["Content-Type"] = "application/json" },
+                Body = HttpService:JSONEncode({ key = key, hwid = hwid, place = tostring(game.PlaceId) }),
+            })
+        end)
+        if not ok or not res or not res.Body then return false end
+        local okd, data = pcall(function() return HttpService:JSONDecode(res.Body) end)
+        if not okd or type(data) ~= "table" then return false end
+
+        -- simpen info buat dipake UI (lock fitur premium, dll)
+        lib._premium  = data.premium == true
+        lib._tier     = data.tier
+        lib._keyExpiry = data.expiry
+        lib._keyMsg   = data.message
+        return data.valid == true
+    end
+end
+
+-- shortcut buat cek premium dari script game
+function Library:IsPremium() return self._premium == true end
 
 function Library:createDisplayMessage(title, desc, buttons, style)
     local accents = { info = Theme.Accent, warning = Color3.fromRGB(235,180,60), danger = Color3.fromRGB(235,70,90) }
@@ -479,6 +537,31 @@ function Section:_setter(flag, fn)
     lib._setters[flag] = fn
 end
 
+-- kunci element premium kalau user bukan premium.
+-- return true kalau dikunci (caller skip pasang interaksi).
+function Section:_premiumLock(row, opts)
+    if not (opts and opts.premium) then return false end
+    if self._lib._premium == true then return false end
+    -- visual: redupin + badge gembok, blok klik
+    row.BackgroundColor3 = Theme.Sidebar
+    for _, c in ipairs(row:GetDescendants()) do
+        if c:IsA("TextLabel") then c.TextColor3 = Theme.Off
+        elseif c:IsA("TextButton") then c.Active = false; c.AutoButtonColor = false end
+    end
+    local lockBtn = Instance.new("TextButton")
+    lockBtn.Size = UDim2.fromScale(1,1); lockBtn.BackgroundTransparency = 1
+    lockBtn.Text = ""; lockBtn.ZIndex = 50; lockBtn.Parent = row
+    local badge = Instance.new("TextLabel")
+    badge.Size = UDim2.fromOffset(74,16); badge.Position = UDim2.new(1,-80,0.5,-8)
+    badge.BackgroundColor3 = Theme.AccentDark; badge.Font = Enum.Font.GothamBold
+    badge.TextSize = 10; badge.TextColor3 = Color3.new(1,1,1); badge.Text = "PREMIUM"
+    badge.ZIndex = 51; badge.Parent = row; corner(badge,5)
+    lockBtn.MouseButton1Click:Connect(function()
+        self._lib:Notify({ title = "Premium Only", text = (opts.name or "This feature").." needs Premium.", style = "warning" })
+    end)
+    return true
+end
+
 function Section:CreateToggle(opts)
     local lib = self._lib; lib.Flags[opts.flag] = opts.default or false
     local row = baseRow(self._container)
@@ -514,6 +597,7 @@ function Section:CreateToggle(opts)
     end)
     local setter = function(v) lib.Flags[opts.flag]=v; render() end
     self:_setter(opts.flag, setter)
+    self:_premiumLock(row, opts)
     return { Set = setter }
 end
 
@@ -534,6 +618,7 @@ function Section:CreateButton(opts)
         end)
         if opts.callback then pcall(opts.callback) end
     end)
+    self:_premiumLock(row, opts)
     return row
 end
 
@@ -593,6 +678,7 @@ function Section:CreateSlider(opts)
         if opts.callback then pcall(opts.callback, v) end
     end
     self:_setter(opts.flag, setValue)
+    self:_premiumLock(row, opts)
     return { Set = setValue }
 end
 
@@ -642,6 +728,7 @@ function Section:CreateDropdown(opts)
         tween(list, FAST, { Size = UDim2.new(1,0,0,h) })
         arrow.Text = open and "^" or "v"
     end)
+    self:_premiumLock(row, opts)
     return row
 end
 
@@ -818,6 +905,7 @@ function Section:CreateMultiDropdown(opts)
         tween(list, FAST, { Size = UDim2.new(1,0,0,h) })
         arrow.Text = open and "^" or "v"
     end)
+    self:_premiumLock(row, opts)
     return row
 end
 
@@ -1418,12 +1506,16 @@ function Library:Setup(config)
             task.spawn(function()
                 local ok, result = pcall(config.KeyValidator, k)
                 if ok and result == true then
-                    kStatus.TextColor3 = Color3.fromRGB(80,220,120); kStatus.Text = "Valid! Loading hub..."
+                    local welcome = self._keyMsg or "Valid! Loading hub..."
+                    if self._tier then welcome = welcome .. " ("..tostring(self._tier)..")" end
+                    kStatus.TextColor3 = Color3.fromRGB(80,220,120); kStatus.Text = welcome
                     task.wait(0.7)
                     tween(card, FAST, { Position = UDim2.new(0.5,0,1.3,0) })
                     task.wait(0.25); keyGui:Destroy(); validated = true
                 else
-                    kStatus.TextColor3 = Color3.fromRGB(235,70,90); kStatus.Text = "Invalid key. Try again."
+                    -- pakai pesan asli dari server kalau ada (Device limit / Expired / dll)
+                    kStatus.TextColor3 = Color3.fromRGB(235,70,90)
+                    kStatus.Text = self._keyMsg or "Invalid key. Try again."
                     kBtn.Text = "Validate Key"; kBtn.BackgroundColor3 = Theme.Accent; checking = false
                 end
             end)

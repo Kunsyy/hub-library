@@ -1,0 +1,15 @@
+name = "kunsy-hub-keys"
+main = "worker.js"
+compatibility_date = "2025-01-01"
+
+# KV namespace buat nyimpen key.
+# ID di bawah diisi otomatis pas jalanin:
+#   npx wrangler kv namespace create KEYS
+# terus paste id-nya ke sini.
+[[kv_namespaces]]
+binding = "KEYS"
+id = "PASTE_KV_ID_HERE"
+
+# ADMIN_SECRET di-set lewat:
+#   npx wrangler secret put ADMIN_SECRET
+# (jangan ditaruh di file ini biar nggak ke-commit)
