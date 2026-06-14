@@ -1,5 +1,28 @@
 {
   "games": {
-    "GrowAGarden2": { "ids": [10200395747, 133438856880402, 97598239454123], "script": "GrowAGarden2" }
-  }
+    "GrowAGarden2": {
+      "ids": [10200395747, 133438856880402, 97598239454123],
+      "script": "GrowAGarden2",
+      "display": "Grow A Garden 2",
+      "features": [
+        "Auto Plant",
+        "Auto Harvest",
+        "Auto Sell",
+        "Auto Buy Seeds",
+        "Auto Buy Gear",
+        "Plant / Pet ESP",
+        "Anti-AFK",
+        "Webhook Notifier"
+      ]
+    }
+  },
+  "comingSoon": [
+    "Blox Fruits",
+    "Pet Simulator 99",
+    "Blade Ball",
+    "Da Hood",
+    "Anime Vanguards",
+    "Murder Mystery 2",
+    "Adopt Me"
+  ]
 }

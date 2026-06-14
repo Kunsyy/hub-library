@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <defs>
+    <filter id="neon-hard" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="5"  result="b1"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="12" result="b2"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="24" result="b3"/>
+      <feGaussianBlur in="SourceGraphic" stdDeviation="40" result="b4"/>
+      <feMerge>
+        <feMergeNode in="b4"/>
+        <feMergeNode in="b3"/>
+        <feMergeNode in="b2"/>
+        <feMergeNode in="b1"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="neon-soft" x="-80%" y="-80%" width="260%" height="260%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="b"/>
+      <feMerge>
+        <feMergeNode in="b"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <filter id="bg-glow" x="-2%" y="-2%" width="104%" height="104%">
+      <feGaussianBlur in="SourceGraphic" stdDeviation="4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="512" height="512" rx="90" ry="90" fill="#07070e"/>
+
+  <!-- Faint inner bg vignette -->
+  <rect x="20" y="20" width="472" height="472" rx="78" ry="78"
+        fill="none" stroke="#6d28d9" stroke-width="1.5" opacity="0.25"
+        filter="url(#bg-glow)"/>
+
+  <!-- ── Neon K ── -->
+
+  <!-- Glow halo pass (wide purple) -->
+  <g filter="url(#neon-hard)">
+    <line x1="170" y1="122" x2="170" y2="390"
+          stroke="#9333ea" stroke-width="18" stroke-linecap="round"/>
+    <line x1="170" y1="256" x2="356" y2="122"
+          stroke="#9333ea" stroke-width="18" stroke-linecap="round"/>
+    <line x1="170" y1="256" x2="356" y2="390"
+          stroke="#9333ea" stroke-width="18" stroke-linecap="round"/>
+  </g>
+
+  <!-- Mid-purple fill layer -->
+  <line x1="170" y1="122" x2="170" y2="390"
+        stroke="#c084fc" stroke-width="8" stroke-linecap="round"/>
+  <line x1="170" y1="256" x2="356" y2="122"
+        stroke="#c084fc" stroke-width="8" stroke-linecap="round"/>
+  <line x1="170" y1="256" x2="356" y2="390"
+        stroke="#c084fc" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- Bright white core -->
+  <line x1="170" y1="122" x2="170" y2="390"
+        stroke="#f3e8ff" stroke-width="3" stroke-linecap="round"/>
+  <line x1="170" y1="256" x2="356" y2="122"
+        stroke="#f3e8ff" stroke-width="3" stroke-linecap="round"/>
+  <line x1="170" y1="256" x2="356" y2="390"
+        stroke="#f3e8ff" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- ── Sparkle stars ── -->
+
+  <!-- Top-right star (medium) -->
+  <g filter="url(#neon-soft)">
+    <path d="M390,138 L393,148 L403,151 L393,154 L390,164 L387,154 L377,151 L387,148 Z"
+          fill="#e9d5ff" opacity="0.95"/>
+  </g>
+
+  <!-- Bottom-left star (small) -->
+  <g filter="url(#neon-soft)">
+    <path d="M118,375 L120,382 L127,384 L120,386 L118,393 L116,386 L109,384 L116,382 Z"
+          fill="#c084fc" opacity="0.8"/>
+  </g>
+
+  <!-- Top-left tiny star -->
+  <g filter="url(#neon-soft)">
+    <path d="M133,145 L135,150 L140,152 L135,154 L133,159 L131,154 L126,152 L131,150 Z"
+          fill="#d8b4fe" opacity="0.6"/>
+  </g>
+
+  <!-- Right-side tiny star -->
+  <g filter="url(#neon-soft)">
+    <path d="M398,340 L400,346 L406,348 L400,350 L398,356 L396,350 L390,348 L396,346 Z"
+          fill="#a855f7" opacity="0.7"/>
+  </g>
+
+</svg>

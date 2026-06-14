@@ -79,12 +79,42 @@ section{position:relative;z-index:1}
 .feat h3{font-size:18px;font-weight:600;margin-bottom:8px}
 .feat p{color:var(--sub);font-size:15px}
 
+/* status strip */
+.statusbar{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;margin-bottom:30px;font-size:12.5px;font-weight:600;letter-spacing:.6px;color:var(--sub)}
+.statusbar span{display:inline-flex;align-items:center;gap:8px;text-transform:uppercase}
+.statusbar .d{display:inline-block;width:9px;height:9px;border-radius:50%}
+.statusbar .on{background:#4ade80;box-shadow:0 0 8px #4ade80}
+.statusbar .pr{background:var(--accent2);box-shadow:0 0 8px var(--accent2)}
+.statusbar .up{background:#38bdf8;box-shadow:0 0 8px #38bdf8}
+
 /* games */
-.gamecard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;display:flex;align-items:center;gap:16px;transition:.2s}
-.gamecard:hover{border-color:var(--accent)}
-.gamecard .gico{width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,var(--accentd),var(--card2));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
-.gamecard h3{font-size:17px;font-weight:600}
-.gamecard .badge{font-size:12px;color:#4ade80;font-weight:500}
+.gamecard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:.2s;display:flex;flex-direction:column}
+.gamecard:hover{border-color:var(--accent);transform:translateY(-3px)}
+.gamecard .gthumb{position:relative;aspect-ratio:16/10;background:linear-gradient(135deg,var(--accentd),var(--card2));background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center}
+.gamecard .gthumb .gini{font-size:32px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:1px}
+.gamecard .gthumb .seehint{position:absolute;inset:0;background:rgba(10,8,18,.78);display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:14px;color:var(--text);opacity:0;transition:.2s}
+.gamecard:hover .gthumb .seehint{opacity:1}
+.gamecard .gbody{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px}
+.gamecard .gbody h3{font-size:15.5px;font-weight:600}
+.gamecard .sup{font-size:11px;font-weight:700;color:#4ade80;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);padding:3px 9px;border-radius:6px;white-space:nowrap}
+.gamecard .sup.soon{color:#f0b429;background:rgba(240,180,41,.12);border-color:rgba(240,180,41,.3)}
+
+/* game modal */
+.gmodal{position:fixed;inset:0;z-index:100;background:rgba(6,5,12,.78);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px}
+.gmodal.open{display:flex}
+.gmbox{background:var(--card);border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;overflow:hidden;animation:pop .2s ease}
+@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
+.gmhead{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,var(--accentd),var(--card2));background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center}
+.gmhead .gmini{font-size:46px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:1px}
+.gmhead .gmclose{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:8px;background:rgba(0,0,0,.5);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.gmcontent{padding:22px 24px 26px}
+.gmcontent h3{font-size:22px;font-weight:700;margin-bottom:4px}
+.gmcontent .gmsub{font-size:13px;font-weight:600;margin-bottom:18px}
+.gmcontent h4{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin-bottom:12px}
+.featlist{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.featlist li{font-size:14px;display:flex;gap:8px;align-items:flex-start}
+.featlist li .ck{color:var(--accent2);font-weight:700}
+.gmsoon{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:18px}
 
 /* pricing */
 .prices{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:stretch}
@@ -138,26 +168,26 @@ footer .sub{color:var(--sub);font-size:14px}
 </div></nav>
 
 <section class="hero"><div class="wrap">
-  <div class="pill"><span class="dot"></span> Now supporting <span id="gameCount">1</span> game · v1.0</div>
-  <h1>Premium Roblox scripts,<br><span class="accent">one line</span> away.</h1>
-  <p class="lead">Auto-detects your game, loads instantly, protected by a real key + HWID system. No bloat, no spam — just clean, fast, premium.</p>
+  <div class="pill"><span class="dot"></span> v1.0 · <span id="gameCount">1</span> game supported</div>
+  <h1>Premium Roblox scripts,<br><span class="accent">refined</span>.</h1>
+  <p class="lead">One line to load. Kunsy Hub detects your game, validates your key, and runs — fast, stable, and protected by server-side HWID locking.</p>
   <div class="hero-cta">
-    <a class="btn btn-primary" href="#pricing">Get Started</a>
+    <a class="btn btn-primary" href="#pricing">Get a key</a>
     <a class="btn btn-ghost" href="#" id="discordHero">Join Discord</a>
   </div>
   <div class="loadbox">
     <div class="top"><span>Load Kunsy Hub</span><button class="copybtn" id="copyBtn">Copy</button></div>
-    <code id="loadstr">loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/main/loader.lua"))()</code>
+    <code id="loadstr">loadstring(game:HttpGet("https://api.kunsydev.xyz/raw/loader.lua"))()</code>
   </div>
   <div class="stats">
-    <div class="stat"><div class="n" id="stUsers">1,000+</div><div class="l">Active users</div></div>
+    <div class="stat"><div class="n" id="stUsers">200+</div><div class="l">Active users</div></div>
     <div class="stat"><div class="n" id="stGames">1</div><div class="l">Supported games</div></div>
     <div class="stat"><div class="n">99.9%</div><div class="l">Uptime</div></div>
   </div>
 </div></section>
 
 <section class="block" id="features"><div class="wrap">
-  <div class="shead"><h2>Built different</h2><p>Everything a premium hub needs, nothing it doesn't.</p></div>
+  <div class="shead"><h2>Why Kunsy Hub</h2><p>The essentials, engineered to be fast, clean, and reliable.</p></div>
   <div class="grid g3">
     <div class="feat"><div class="ico">🎯</div><h3>Auto-detect games</h3><p>Loads the right script for your game automatically. Unsupported games show a clean message instead of breaking.</p></div>
     <div class="feat"><div class="ico">🔑</div><h3>Key + HWID system</h3><p>Server-side validation with device locking. 5 tiers from free to permanent — your keys, your rules.</p></div>
@@ -169,10 +199,13 @@ footer .sub{color:var(--sub);font-size:14px}
 </div></section>
 
 <section class="block" id="games"><div class="wrap">
-  <div class="shead"><h2>Supported games</h2><p>More added every week. Request yours in Discord.</p></div>
-  <div class="grid g3" id="gamesGrid">
-    <div class="gamecard"><div class="gico">🌱</div><div><h3>Grow A Garden 2</h3><div class="badge">● Active</div></div></div>
+  <div class="statusbar">
+    <span><i class="d on"></i> Servers online</span>
+    <span><i class="d pr"></i> HWID protected</span>
+    <span><i class="d up"></i> Updated daily</span>
   </div>
+  <div class="shead"><h2>Supported games</h2><p>More added every week. Click a game to see its features.</p></div>
+  <div class="grid g4" id="gamesGrid"></div>
 </div></section>
 
 <section class="block" id="pricing"><div class="wrap">
@@ -194,26 +227,26 @@ footer .sub{color:var(--sub);font-size:14px}
       </ul>
       <a class="btn btn-ghost" href="#" id="adsBtn">Get via Ads</a>
     </div>
-    <div class="price feat-card" style="position:relative"><div class="ribbon">Popular</div><div class="tag">Monthly</div><div class="amt">$2.99</div><div class="dur">30 days · 1 device</div>
+    <div class="price"><div class="tag">Monthly</div><div class="amt">$2.99</div><div class="dur">30 days · 3 devices</div>
       <ul>
         <li><span class="ck">✓</span> All premium features</li>
         <li><span class="ck">✓</span> No ads</li>
         <li><span class="ck">✓</span> Priority support</li>
       </ul>
-      <a class="btn btn-primary" href="#" data-buy="monthly">Buy Monthly</a>
+      <a class="btn btn-ghost" href="#" data-buy="monthly">Buy Monthly</a>
     </div>
-    <div class="price"><div class="tag">Yearly</div><div class="amt">$11.99</div><div class="dur">1 year · 2 devices</div>
+    <div class="price feat-card" style="position:relative"><div class="ribbon">Popular</div><div class="tag">Yearly</div><div class="amt">$11.99</div><div class="dur">1 year · 10 devices</div>
       <ul>
         <li><span class="ck">✓</span> All premium features</li>
-        <li><span class="ck">✓</span> 2 devices</li>
+        <li><span class="ck">✓</span> 10 devices</li>
         <li><span class="ck">✓</span> Best value</li>
       </ul>
-      <a class="btn btn-ghost" href="#" data-buy="yearly">Buy Yearly</a>
+      <a class="btn btn-primary" href="#" data-buy="yearly">Buy Yearly</a>
     </div>
-    <div class="price"><div class="tag">Permanent</div><div class="amt">$21.99</div><div class="dur">Forever · 3 devices</div>
+    <div class="price"><div class="tag">Permanent</div><div class="amt">$21.99</div><div class="dur">Forever · 25 devices</div>
       <ul>
         <li><span class="ck">✓</span> Lifetime access</li>
-        <li><span class="ck">✓</span> 3 devices</li>
+        <li><span class="ck">✓</span> 25 devices</li>
         <li><span class="ck">✓</span> All future updates</li>
       </ul>
       <a class="btn btn-ghost" href="#" data-buy="permanent">Buy Permanent</a>
@@ -222,8 +255,8 @@ footer .sub{color:var(--sub);font-size:14px}
 </div></section>
 
 <section class="block"><div class="bigcta">
-  <h2>Ready to dominate?</h2>
-  <p>Join thousands of players using Kunsy Hub.</p>
+  <h2>Get started in seconds</h2>
+  <p>Grab your key, paste one line, and you're in.</p>
   <a class="btn btn-primary" href="#" id="discordBottom">Join our Discord</a>
 </div></section>
 
@@ -232,8 +265,19 @@ footer .sub{color:var(--sub);font-size:14px}
   <div class="sub">© 2026 Kunsy Hub. Not affiliated with Roblox Corporation.</div>
 </div></footer>
 
+<div class="gmodal" id="gmodal">
+  <div class="gmbox">
+    <div class="gmhead"><span class="gmini"></span><button class="gmclose" aria-label="Close">✕</button></div>
+    <div class="gmcontent">
+      <h3 id="gmName">Game</h3>
+      <div class="gmsub" id="gmSub">● Supported</div>
+      <div id="gmBody"></div>
+    </div>
+  </div>
+</div>
+
 <script>
-const DISCORD = "https://discord.gg/yourserver";
+const DISCORD = "https://discord.gg/pxWVmpjV";
 document.querySelectorAll('#discordTop,#discordHero,#discordBottom,[data-discord]').forEach(function(a){
   a.addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
 });
@@ -244,21 +288,70 @@ copyBtn.addEventListener('click',function(){
     setTimeout(function(){copyBtn.textContent='Copy';copyBtn.classList.remove('copied');},1600);
   });
 });
-const ICONS={GrowAGarden2:'🌱',SlimeRNG:'🟢',PetSim:'🐾',Anime:'⚔️'};
+function prettyName(s){return s
+  .replace(/([a-z0-9])([A-Z])/g,'$1 $2')
+  .replace(/([A-Za-z])([0-9])/g,'$1 $2')
+  .replace(/([A-Z]+)([A-Z][a-z])/g,'$1 $2')
+  .trim();}
+function initials(s){return s.split(/\s+/).filter(Boolean).slice(0,3).map(function(w){return w[0];}).join('').toUpperCase();}
+
+const modal=document.getElementById('gmodal');
+function openGame(g){
+  const head=modal.querySelector('.gmhead');
+  head.style.backgroundImage=g.thumb?('url('+g.thumb+')'):'';
+  head.querySelector('.gmini').textContent=g.thumb?'':initials(g.name);
+  modal.querySelector('#gmName').textContent=g.name;
+  const sub=modal.querySelector('#gmSub');
+  sub.textContent=g.supported?'● Supported':'● Coming soon';
+  sub.style.color=g.supported?'#4ade80':'#f0b429';
+  const body=modal.querySelector('#gmBody');
+  if(g.supported){
+    var items=(g.features&&g.features.length?g.features:['Auto farm','ESP / visuals','Auto sell','Anti-AFK']);
+    body.innerHTML='<h4>Features</h4><ul class="featlist">'+items.map(function(f){return '<li><span class="ck">✓</span>'+f+'</li>';}).join('')+'</ul>';
+  }else{
+    body.innerHTML='<p class="gmsoon">This game is on our roadmap. Want it prioritized? Vote & request it in our Discord.</p><a class="btn btn-primary" id="gmDiscord" href="#">Request in Discord</a>';
+    body.querySelector('#gmDiscord').addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
+  }
+  modal.classList.add('open');
+}
+modal.addEventListener('click',function(e){if(e.target===modal||e.target.closest('.gmclose'))modal.classList.remove('open');});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')modal.classList.remove('open');});
+
+function makeCard(g){
+  const card=document.createElement('div');
+  card.className='gamecard';
+  card.innerHTML=
+    '<div class="gthumb"'+(g.thumb?(' style="background-image:url('+g.thumb+')"'):'')+'>'+
+      (g.thumb?'':'<span class="gini">'+initials(g.name)+'</span>')+
+      '<div class="seehint">See features →</div>'+
+    '</div>'+
+    '<div class="gbody"><h3>'+g.name+'</h3><span class="sup'+(g.supported?'':' soon')+'">'+(g.supported?'Supported':'Soon')+'</span></div>';
+  card.addEventListener('click',function(){openGame(g);});
+  return card;
+}
+
 fetch('https://raw.githubusercontent.com/Kunsyy/hub-library/main/games.json?v='+Date.now())
   .then(function(r){return r.json();})
   .then(function(d){
-    const games=d.games||{},keys=Object.keys(games);
-    if(!keys.length)return;
-    const grid=document.getElementById('gamesGrid');grid.innerHTML='';
+    const games=d.games||{},keys=Object.keys(games),grid=document.getElementById('gamesGrid');
+    grid.innerHTML='';
     keys.forEach(function(name){
-      const pretty=name.replace(/([a-z])([A-Z0-9])/g,'$1 $2');
-      grid.insertAdjacentHTML('beforeend',
-        '<div class="gamecard"><div class="gico">'+(ICONS[name]||'🎮')+'</div><div><h3>'+pretty+'</h3><div class="badge">● Active</div></div></div>');
+      const info=games[name];
+      grid.appendChild(makeCard({
+        name:info.display||prettyName(name),
+        thumb:info.thumb||'',
+        features:info.features||[],
+        supported:info.supported!==false
+      }));
+    });
+    (d.comingSoon||[]).forEach(function(item){
+      const obj=(typeof item==='string')?{name:item}:item;
+      grid.appendChild(makeCard({name:obj.name,thumb:obj.thumb||'',features:[],supported:false}));
     });
     document.getElementById('gameCount').textContent=keys.length;
     document.getElementById('stGames').textContent=keys.length;
   }).catch(function(){});
+
 document.querySelectorAll('[data-buy]').forEach(function(b){
   b.addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
 });

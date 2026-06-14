@@ -35,7 +35,7 @@ local HttpService      = game:GetService("HttpService")
 -- ============================================================
 --  PLACEHOLDER (ganti dari Setup juga bisa)
 -- ============================================================
-local LOGO_PLACEHOLDER = "rbxassetid://101654945061026"  -- logo default (Open Cloud upload)
+local LOGO_PLACEHOLDER = "rbxthumb://type=Asset&id=101654945061026&w=150&h=150"  -- logo default (Open Cloud upload)
 local CONFIG_FOLDER    = "VS_Config"        -- folder simpan config di workspace
 
 -- ============================================================
@@ -99,25 +99,26 @@ local function roundSide(frame, side, color, radius)
 end
 
 -- ============================================================
---  ICONS  (rbxassetid — di-upload via Open Cloud, reliable di semua executor)
+--  ICONS  (rbxthumb — bypass masalah Decal-vs-Image, render asset id apapun)
 --  Update ID di sini kalau re-upload. Lihat icons/uploaded-ids.json
 -- ============================================================
+local function thumb(id) return "rbxthumb://type=Asset&id=" .. id .. "&w=150&h=150" end
 local Icons = {
-    Logo     = "rbxassetid://101654945061026",
-    Home     = "rbxassetid://96794263457417",
-    Settings = "rbxassetid://125340642775749",
-    Gear     = "rbxassetid://77874046874610",
-    Sword    = "rbxassetid://138553367383097",
-    Sword2   = "rbxassetid://77718234948249",
-    Diamond  = "rbxassetid://137677675885900",
-    Shop     = "rbxassetid://121285909868734",
-    Trophy   = "rbxassetid://122297454485131",
-    Notif    = "rbxassetid://122214386286059",
-    Scroll   = "rbxassetid://116242379685163",
-    Location = "rbxassetid://98755162339796",
-    Folder   = "rbxassetid://111250111140659",
-    Gift     = "rbxassetid://102569252916143",
-    Empty    = "rbxassetid://138928503825440",
+    Logo     = thumb(101654945061026),
+    Home     = thumb(96794263457417),
+    Settings = thumb(125340642775749),
+    Gear     = thumb(77874046874610),
+    Sword    = thumb(138553367383097),
+    Sword2   = thumb(77718234948249),
+    Diamond  = thumb(137677675885900),
+    Shop     = thumb(121285909868734),
+    Trophy   = thumb(122297454485131),
+    Notif    = thumb(122214386286059),
+    Scroll   = thumb(116242379685163),
+    Location = thumb(98755162339796),
+    Folder   = thumb(111250111140659),
+    Gift     = thumb(102569252916143),
+    Empty    = thumb(138928503825440),
 }
 
 -- ============================================================
