@@ -1,16 +1,19 @@
 --[[
     ╔══════════════════════════════════════════════════════╗
-    ║   HUB LOADER — entry point (execute this one)         ║
+    ║   HUB LOADER — entry point (OBFUSCATE THIS ONCE)      ║
     ╚══════════════════════════════════════════════════════╝
 
     User cukup jalanin 1 baris:
     loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/main/loader.lua"))()
 
-    CARA NAMBAH GAME:
-    1. Bikin file baru di  scripts/NamaGame.lua  (lihat scripts/SlimeRNG.lua sebagai contoh)
-    2. Tambahin entry di tabel GAMES di bawah:
-         NamaGame = { ids = { PLACEID }, script = "NamaGame" }
-       (ids bisa lebih dari satu kalau game-nya punya banyak place)
+    ⚠️ FILE INI DIBEKUKAN — obfuscate SEKALI, jangan disentuh lagi.
+       Daftar game ada di  games.json  (edit di situ, GRATIS, no re-obf).
+       Fitur game ada di    scripts/*.lua  (edit di situ, GRATIS, no re-obf).
+
+    CARA NAMBAH GAME (tanpa re-obf):
+    1. Bikin file  scripts/NamaGame.lua
+    2. Tambahin entry di  games.json:
+         "NamaGame": { "ids": [PLACEID], "script": "NamaGame" }
 --]]
 
 local REPO = "https://raw.githubusercontent.com/Kunsyy/hub-library/main/"
@@ -20,6 +23,8 @@ local function fetch(file)
     local bust = "?v=" .. tostring(os.time()) .. tostring(math.random(1,99999))
     return game:HttpGet(REPO .. file .. bust)
 end
+
+local HttpService = game:GetService("HttpService")
 
 -- ============================================================
 --  1) LOAD UI LIBRARY
@@ -37,13 +42,15 @@ do
 end
 
 -- ============================================================
---  2) SUPPORTED GAMES REGISTRY
---     key = nama bebas | ids = {PlaceId...} | script = nama file di /scripts
+--  2) LOAD GAMES REGISTRY (dari games.json — edit bebas, no re-obf)
 -- ============================================================
-local GAMES = {
-    GrowAGarden2 = { ids = { 97598239454123 }, script = "GrowAGarden2" },
-    -- PetSim    = { ids = { 123, 456 }, script = "PetSim" },
-}
+local GAMES
+do
+    local ok, data = pcall(function()
+        return HttpService:JSONDecode(fetch("games.json"))
+    end)
+    GAMES = (ok and data and data.games) or {}
+end
 
 -- ============================================================
 --  3) DETECT GAME
@@ -51,7 +58,7 @@ local GAMES = {
 local pid, gid = game.PlaceId, game.GameId
 local matched, matchedName
 for name, info in pairs(GAMES) do
-    for _, id in ipairs(info.ids) do
+    for _, id in ipairs(info.ids or {}) do
         if id == pid or id == gid then
             matched, matchedName = info, name
             break
