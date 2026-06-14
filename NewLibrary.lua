@@ -361,6 +361,65 @@ function Library:createDisplayMessage(title, desc, buttons, style)
     tween(frame, SMOOTH, { Size = UDim2.fromOffset(340,150) })
 end
 
+-- ===== TOAST NOTIFICATION (pojok kanan-bawah, auto-hilang) =====
+function Library:Notify(opts)
+    opts = opts or {}
+    local title = opts.title or "Notification"
+    local desc  = opts.text or opts.desc or ""
+    local dur   = opts.duration or 3
+    local accents = { info = Theme.Accent, warning = Color3.fromRGB(235,180,60), danger = Color3.fromRGB(235,70,90), success = Color3.fromRGB(80,220,120) }
+    local accent = accents[opts.style] or accents.info
+
+    local loc = self._location or CoreGui
+    -- container toast (bikin sekali, tumpuk dari bawah)
+    local holder = loc:FindFirstChild("VS_Toasts")
+    if not holder then
+        holder = Instance.new("ScreenGui")
+        holder.Name = "VS_Toasts"; holder.ResetOnSpawn = false; holder.DisplayOrder = 1001
+        holder.IgnoreGuiInset = true; holder.Parent = loc
+        local frame = Instance.new("Frame")
+        frame.Name = "stack"; frame.Size = UDim2.new(0,300,1,-20); frame.Position = UDim2.new(1,-312,0,10)
+        frame.BackgroundTransparency = 1; frame.Parent = holder
+        local lay = Instance.new("UIListLayout", frame)
+        lay.VerticalAlignment = Enum.VerticalAlignment.Bottom; lay.HorizontalAlignment = Enum.HorizontalAlignment.Right
+        lay.Padding = UDim.new(0,8); lay.SortOrder = Enum.SortOrder.LayoutOrder
+    end
+    local stack = holder:FindFirstChild("stack")
+
+    local card = Instance.new("Frame")
+    card.Size = UDim2.new(0,300,0,0); card.AutomaticSize = Enum.AutomaticSize.Y
+    card.BackgroundColor3 = Theme.Card; card.Parent = stack
+    card.LayoutOrder = tick() * 1000 % 2147483647
+    corner(card,10); pad(card,12)
+    local accentBar = Instance.new("Frame")
+    accentBar.Size = UDim2.new(0,3,1,-8); accentBar.Position = UDim2.new(0,-8,0,4)
+    accentBar.BackgroundColor3 = accent; accentBar.BorderSizePixel = 0; accentBar.Parent = card; corner(accentBar,2)
+    local lay = Instance.new("UIListLayout", card); lay.Padding = UDim.new(0,3)
+
+    local t = Instance.new("TextLabel")
+    t.Size = UDim2.new(1,0,0,18); t.BackgroundTransparency = 1; t.Font = Enum.Font.GothamBold
+    t.TextSize = 14; t.TextColor3 = Theme.Text; t.TextXAlignment = Enum.TextXAlignment.Left
+    t.Text = title; t.Parent = card
+    local d = Instance.new("TextLabel")
+    d.Size = UDim2.new(1,0,0,0); d.AutomaticSize = Enum.AutomaticSize.Y; d.BackgroundTransparency = 1
+    d.Font = Enum.Font.Gotham; d.TextSize = 12; d.TextWrapped = true; d.TextColor3 = Theme.SubText
+    d.TextXAlignment = Enum.TextXAlignment.Left; d.Text = desc; d.Parent = card
+
+    -- slide in
+    card.Position = UDim2.fromOffset(320,0)
+    tween(card, SMOOTH, { Position = UDim2.fromOffset(0,0) })
+    -- progress bar
+    local prog = Instance.new("Frame")
+    prog.Size = UDim2.new(1,0,0,2); prog.Position = UDim2.new(0,0,1,-2)
+    prog.BackgroundColor3 = accent; prog.BorderSizePixel = 0; prog.Parent = card
+    tween(prog, TweenInfo.new(dur, Enum.EasingStyle.Linear), { Size = UDim2.new(0,0,0,2) })
+
+    task.delay(dur, function()
+        tween(card, FAST, { Position = UDim2.fromOffset(320,0) }).Completed:Wait()
+        card:Destroy()
+    end)
+end
+
 -- ============================================================
 --  ELEMEN (Section)
 -- ============================================================
@@ -731,6 +790,139 @@ function Section:CreateMultiDropdown(opts)
         arrow.Text = open and "^" or "v"
     end)
     return row
+end
+
+-- ===== LABEL (teks statis 1 baris) =====
+function Section:CreateLabel(opts)
+    opts = opts or {}
+    local lbl = Instance.new("TextLabel")
+    lbl.Size = UDim2.new(1,0,0,20); lbl.BackgroundTransparency = 1
+    lbl.Font = Enum.Font.GothamMedium; lbl.TextSize = 13; lbl.TextColor3 = Theme.Text
+    lbl.TextXAlignment = Enum.TextXAlignment.Left; lbl.TextWrapped = true
+    lbl.Text = opts.text or opts.name or ""; lbl.Parent = self._container
+    self:_track(lbl, opts.text or opts.name or "label")
+    return { Set = function(t) lbl.Text = tostring(t) end, Instance = lbl }
+end
+
+-- ===== PARAGRAPH (judul + teks panjang) =====
+function Section:CreateParagraph(opts)
+    opts = opts or {}
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1,0,0,0); row.AutomaticSize = Enum.AutomaticSize.Y
+    row.BackgroundColor3 = Theme.Element; row.Parent = self._container
+    corner(row,7); stroke(row, Theme.Stroke, 1, 0.5); pad(row, 10)
+    local lay = Instance.new("UIListLayout", row); lay.Padding = UDim.new(0,4)
+    self:_track(row, opts.title or "paragraph")
+
+    if opts.title then
+        local t = Instance.new("TextLabel")
+        t.Size = UDim2.new(1,0,0,18); t.BackgroundTransparency = 1; t.Font = Enum.Font.GothamBold
+        t.TextSize = 14; t.TextColor3 = Theme.AccentGlow; t.TextXAlignment = Enum.TextXAlignment.Left
+        t.Text = opts.title; t.Parent = row
+    end
+    local body = Instance.new("TextLabel")
+    body.Size = UDim2.new(1,0,0,0); body.AutomaticSize = Enum.AutomaticSize.Y; body.BackgroundTransparency = 1
+    body.Font = Enum.Font.Gotham; body.TextSize = 13; body.TextColor3 = Theme.SubText
+    body.TextXAlignment = Enum.TextXAlignment.Left; body.TextWrapped = true
+    body.Text = opts.text or ""; body.Parent = row
+    return { Set = function(t) body.Text = tostring(t) end, Instance = row }
+end
+
+-- ===== SEPARATOR (garis pemisah, opsional ada teks) =====
+function Section:CreateSeparator(opts)
+    opts = opts or {}
+    local row = Instance.new("Frame")
+    row.Size = UDim2.new(1,0,0, opts.text and 18 or 8); row.BackgroundTransparency = 1; row.Parent = self._container
+    self:_track(row, opts.text or "separator")
+    if opts.text then
+        local lbl = Instance.new("TextLabel")
+        lbl.Size = UDim2.fromScale(1,1); lbl.BackgroundTransparency = 1; lbl.Font = Enum.Font.GothamMedium
+        lbl.TextSize = 11; lbl.TextColor3 = Theme.SubText; lbl.Text = opts.text; lbl.Parent = row
+    else
+        local line = Instance.new("Frame")
+        line.Size = UDim2.new(1,-8,0,1); line.Position = UDim2.new(0,4,0.5,0)
+        line.BackgroundColor3 = Theme.Stroke; line.BorderSizePixel = 0; line.Parent = row
+    end
+    return row
+end
+
+-- ===== COLOR PICKER (RGB sliders) =====
+function Section:CreateColorPicker(opts)
+    local lib = self._lib
+    local default = opts.default or Color3.fromRGB(150,90,255)
+    lib.Flags[opts.flag] = default
+    local row = baseRow(self._container); local open = false
+    self:_track(row, opts.name or opts.flag)
+
+    local label = Instance.new("TextLabel")
+    label.Size = UDim2.new(1,-50,0,36); label.Position = UDim2.fromOffset(12,0); label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamMedium; label.TextSize = 14; label.TextColor3 = Theme.Text
+    label.TextXAlignment = Enum.TextXAlignment.Left; label.Text = opts.name or opts.flag; label.Parent = row
+
+    local preview = Instance.new("Frame")
+    preview.Size = UDim2.fromOffset(28,18); preview.Position = UDim2.new(1,-40,0,9)
+    preview.BackgroundColor3 = default; preview.Parent = row; corner(preview,5); stroke(preview, Theme.Stroke, 1)
+
+    local panel = Instance.new("Frame")
+    panel.Size = UDim2.new(1,0,0,0); panel.Position = UDim2.fromOffset(0,40); panel.BackgroundTransparency = 1
+    panel.ClipsDescendants = true; panel.Parent = row
+    local pl = Instance.new("UIListLayout", panel); pl.Padding = UDim.new(0,6)
+
+    local rgb = { math.floor(default.R*255+0.5), math.floor(default.G*255+0.5), math.floor(default.B*255+0.5) }
+    local names = { "R", "G", "B" }
+    local function apply()
+        local c = Color3.fromRGB(rgb[1],rgb[2],rgb[3])
+        preview.BackgroundColor3 = c; lib.Flags[opts.flag] = c
+        if opts.callback then pcall(opts.callback, c) end
+        lib:_autoSave()
+    end
+    local fills = {}
+    for idx = 1, 3 do
+        local s = Instance.new("Frame")
+        s.Size = UDim2.new(1,0,0,22); s.BackgroundTransparency = 1; s.Parent = panel
+        local nm = Instance.new("TextLabel")
+        nm.Size = UDim2.fromOffset(14,22); nm.BackgroundTransparency = 1; nm.Font = Enum.Font.GothamBold
+        nm.TextSize = 12; nm.TextColor3 = Theme.SubText; nm.Text = names[idx]; nm.Parent = s
+        local bar = Instance.new("Frame")
+        bar.Size = UDim2.new(1,-50,0,6); bar.Position = UDim2.new(0,18,0.5,-3)
+        bar.BackgroundColor3 = Theme.Off; bar.Parent = s; corner(bar,3)
+        local fill = Instance.new("Frame")
+        fill.Size = UDim2.fromScale(rgb[idx]/255,1); fill.BackgroundColor3 = Theme.Accent; fill.Parent = bar; corner(fill,3)
+        fills[idx] = fill
+        local val = Instance.new("TextLabel")
+        val.Size = UDim2.fromOffset(28,22); val.Position = UDim2.new(1,-28,0,0); val.BackgroundTransparency = 1
+        val.Font = Enum.Font.Gotham; val.TextSize = 12; val.TextColor3 = Theme.Text
+        val.Text = tostring(rgb[idx]); val.Parent = s
+        local dragging = false
+        local function setX(x)
+            local rel = math.clamp((x - bar.AbsolutePosition.X)/bar.AbsoluteSize.X, 0, 1)
+            rgb[idx] = math.floor(rel*255+0.5); fill.Size = UDim2.fromScale(rel,1); val.Text = tostring(rgb[idx]); apply()
+        end
+        local hit = Instance.new("TextButton")
+        hit.Size = UDim2.new(1,-50,1,0); hit.Position = UDim2.fromOffset(18,0); hit.BackgroundTransparency = 1; hit.Text = ""; hit.Parent = s
+        hit.MouseButton1Down:Connect(function() dragging = true end)
+        UserInputService.InputEnded:Connect(function(i) if i.UserInputType == Enum.UserInputType.MouseButton1 then dragging = false end end)
+        UserInputService.InputChanged:Connect(function(i) if dragging and i.UserInputType == Enum.UserInputType.MouseMovement then setX(i.Position.X) end end)
+        hit.MouseButton1Click:Connect(function() setX(UserInputService:GetMouseLocation().X) end)
+    end
+
+    self:_setter(opts.flag, function(v)
+        if typeof(v) == "table" then v = Color3.fromRGB(v[1] or v.R or 0, v[2] or v.G or 0, v[3] or v.B or 0) end
+        if typeof(v) ~= "Color3" then return end
+        rgb = { math.floor(v.R*255+0.5), math.floor(v.G*255+0.5), math.floor(v.B*255+0.5) }
+        for i=1,3 do fills[i].Size = UDim2.fromScale(rgb[i]/255,1) end
+        preview.BackgroundColor3 = v; lib.Flags[opts.flag] = v
+    end)
+
+    local hit = Instance.new("TextButton")
+    hit.Size = UDim2.new(1,0,0,36); hit.BackgroundTransparency = 1; hit.Text = ""; hit.Parent = row
+    hit.MouseButton1Click:Connect(function()
+        open = not open
+        local h = open and (3*28+4) or 0
+        tween(row, FAST, { Size = UDim2.new(1,0,0,36+h) })
+        tween(panel, FAST, { Size = UDim2.new(1,0,0,h) })
+    end)
+    return { Set = function(c) (self._lib._setters[opts.flag])(c) end }
 end
 
 -- ============================================================

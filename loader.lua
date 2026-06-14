@@ -35,7 +35,6 @@ end
 --     key = nama bebas | ids = {PlaceId...} | script = nama file di /scripts
 -- ============================================================
 local GAMES = {
-    SlimeRNG     = { ids = { 0 }, script = "SlimeRNG" },              -- << GANTI 0 dengan PlaceId asli
     GrowAGarden2 = { ids = { 97598239454123 }, script = "GrowAGarden2" },
     -- PetSim    = { ids = { 123, 456 }, script = "PetSim" },
 }

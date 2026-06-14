@@ -40,6 +40,10 @@ local Setup = Library:Setup({
     Discord  = "discord.gg/yourserver",
     Version  = "v1.0 (WIP)",
     Game     = "Grow A Garden 2",
+    -- KEY SYSTEM (uncomment buat aktifin — key UI bakal muncul sebelum hub kebuka)
+    -- KeyValidator = function(key)
+    --     return key == "kunsy123"   -- ganti dengan validasi server kamu
+    -- end,
 })
 
 -- ===== TAB: FARM =====
@@ -58,7 +62,20 @@ Auto:CreateSlider({ name = "Collect Delay (s)", flag = "collectDelay", min = 0, 
 
 local Plant = Farm:CreateSection("Planting")
 Plant:CreateToggle({ name = "Auto Plant", flag = "autoPlant", default = false, callback = function(v) end })
-Plant:CreateToggle({ name = "Auto Sell", flag = "autoSell", default = false, callback = function(v) end })
+Plant:CreateToggle({ name = "Auto Sell", flag = "autoSell", default = false,
+    callback = function(on)
+        if on then Library:Notify({ title = "Auto Sell", text = "Enabled!", style = "success" }) end
+    end })
+
+-- ===== TAB: VISUAL (demo elemen baru) =====
+local Visual = Setup:CreateTab({ name = "Visual" })
+local Theme = Visual:CreateSection("Theme")
+Theme:CreateLabel({ text = "Customize your hub appearance:" })
+Theme:CreateSeparator({})
+Theme:CreateColorPicker({ name = "ESP Color", flag = "espColor", default = Color3.fromRGB(150,90,255),
+    callback = function(c) end })
+Theme:CreateSeparator({ text = "INFO" })
+Theme:CreateParagraph({ title = "About", text = "Kunsy Hub for Grow A Garden 2. Join Discord for updates and key access." })
 
 -- ===== TAB: SHOP =====
 local Shop = Setup:CreateTab({ name = "Shop" })
