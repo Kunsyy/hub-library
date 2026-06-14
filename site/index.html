@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kunsy Hub — Premium Roblox Scripts</title>
+<meta name="description" content="Kunsy Hub — premium Roblox script hub. Auto-detect games, key system, HWID protection. One line to load.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0c0a14; --bg2:#120e1e; --card:#1a1426; --card2:#221934;
+  --line:#2e2442; --accent:#9659ff; --accent2:#b98bff; --accentd:#6c3cc8;
+  --text:#f0ecfa; --sub:#988aaf; --radius:14px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
+.accent{color:var(--accent2)}
+
+/* glow bg */
+.glow{position:fixed;border-radius:50%;filter:blur(120px);opacity:.22;z-index:0;pointer-events:none}
+.glow.a{width:480px;height:480px;background:var(--accent);top:-160px;left:-120px}
+.glow.b{width:420px;height:420px;background:#5a2db8;top:340px;right:-160px}
+
+/* nav */
+nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(12,10,20,.72);border-bottom:1px solid var(--line)}
+nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
+.brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent2),var(--accentd));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
+.navlinks{display:flex;gap:28px;align-items:center}
+.navlinks a{color:var(--sub);font-weight:500;font-size:15px;transition:.2s}
+.navlinks a:hover{color:var(--text)}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:10px 18px;border-radius:10px;font-weight:600;font-size:15px;cursor:pointer;border:none;transition:.2s}
+.btn-primary{background:linear-gradient(135deg,var(--accent2),var(--accentd));color:#fff}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(150,89,255,.35)}
+.btn-ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
+.btn-ghost:hover{background:var(--card);border-color:var(--accent)}
+
+/* hero */
+section{position:relative;z-index:1}
+.hero{padding:90px 0 70px;text-align:center}
+.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-size:13px;color:var(--sub);margin-bottom:26px}
+.pill .dot{width:8px;height:8px;border-radius:50%;background:#4ade80;box-shadow:0 0 8px #4ade80}
+.hero h1{font-size:62px;line-height:1.05;font-weight:800;letter-spacing:-1.5px;margin-bottom:20px}
+.hero p.lead{font-size:19px;color:var(--sub);max-width:620px;margin:0 auto 34px}
+.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:44px}
+
+/* loadstring box */
+.loadbox{max-width:720px;margin:0 auto;background:#0a0812;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;text-align:left}
+.loadbox .top{display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--card);border-bottom:1px solid var(--line)}
+.loadbox .top span{font-size:13px;color:var(--sub);font-weight:500}
+.loadbox code{display:block;padding:18px;font-family:'SF Mono',Consolas,monospace;font-size:13.5px;color:#cbbdf0;white-space:pre-wrap;word-break:break-all}
+.copybtn{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
+.copybtn:hover{background:var(--accent2)}
+.copybtn.copied{background:#4ade80}
+
+/* stats */
+.stats{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-top:54px}
+.stat{text-align:center}
+.stat .n{font-size:34px;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.stat .l{font-size:14px;color:var(--sub)}
+
+/* section heads */
+.shead{text-align:center;margin-bottom:48px}
+.shead h2{font-size:40px;font-weight:800;letter-spacing:-1px;margin-bottom:12px}
+.shead p{color:var(--sub);font-size:17px}
+.block{padding:80px 0}
+
+/* feature grid */
+.grid{display:grid;gap:18px}
+.g3{grid-template-columns:repeat(3,1fr)}
+.g4{grid-template-columns:repeat(4,1fr)}
+.feat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;transition:.2s}
+.feat:hover{border-color:var(--accent);transform:translateY(-3px)}
+.feat .ico{width:46px;height:46px;border-radius:11px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
+.feat h3{font-size:18px;font-weight:600;margin-bottom:8px}
+.feat p{color:var(--sub);font-size:15px}
+
+/* games */
+.gamecard{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:22px;display:flex;align-items:center;gap:16px;transition:.2s}
+.gamecard:hover{border-color:var(--accent)}
+.gamecard .gico{width:50px;height:50px;border-radius:12px;background:linear-gradient(135deg,var(--accentd),var(--card2));display:flex;align-items:center;justify-content:center;font-size:24px;flex-shrink:0}
+.gamecard h3{font-size:17px;font-weight:600}
+.gamecard .badge{font-size:12px;color:#4ade80;font-weight:500}
+
+/* pricing */
+.prices{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:stretch}
+.price{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 20px;display:flex;flex-direction:column;transition:.2s}
+.price:hover{transform:translateY(-4px);border-color:var(--accent)}
+.price.feat-card{border:2px solid var(--accent);background:var(--card2)}
+.price .tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin-bottom:10px}
+.price .amt{font-size:34px;font-weight:800;margin-bottom:2px}
+.price .amt small{font-size:14px;color:var(--sub);font-weight:500}
+.price .dur{font-size:13px;color:var(--sub);margin-bottom:18px}
+.price ul{list-style:none;flex:1;margin-bottom:20px}
+.price li{font-size:14px;color:var(--text);padding:7px 0;display:flex;gap:8px;align-items:flex-start}
+.price li.off{color:var(--sub);opacity:.55}
+.price li .ck{color:#4ade80;font-weight:700}
+.price li .xx{color:#f0726f}
+.ribbon{position:absolute;top:14px;right:14px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px}
+
+/* cta */
+.bigcta{margin:0 24px;background:linear-gradient(135deg,#2a1a4d,#1a1230);border:1px solid var(--line);border-radius:24px;padding:64px 24px;text-align:center}
+.bigcta h2{font-size:42px;font-weight:800;letter-spacing:-1px;margin-bottom:14px}
+.bigcta p{color:var(--sub);font-size:18px;margin-bottom:30px}
+
+footer{border-top:1px solid var(--line);padding:40px 0;margin-top:80px}
+footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+footer .sub{color:var(--sub);font-size:14px}
+
+@media(max-width:900px){
+  .g3,.g4{grid-template-columns:repeat(2,1fr)}
+  .prices{grid-template-columns:repeat(2,1fr)}
+  .hero h1{font-size:42px}
+  .navlinks{display:none}
+}
+@media(max-width:560px){
+  .g3,.g4,.prices{grid-template-columns:1fr}
+  .hero h1{font-size:36px}
+}
+</style>
+</head>
+<body>
+<div class="glow a"></div><div class="glow b"></div>
+
+<nav><div class="wrap">
+  <a href="#" class="brand"><span class="logo">K</span> Kunsy Hub</a>
+  <div class="navlinks">
+    <a href="#features">Features</a>
+    <a href="#games">Games</a>
+    <a href="#pricing">Pricing</a>
+    <a href="#" id="discordTop">Discord</a>
+  </div>
+  <a class="btn btn-primary" href="#pricing">Get Key</a>
+</div></nav>
+
+<section class="hero"><div class="wrap">
+  <div class="pill"><span class="dot"></span> Now supporting <span id="gameCount">1</span> game · v1.0</div>
+  <h1>Premium Roblox scripts,<br><span class="accent">one line</span> away.</h1>
+  <p class="lead">Auto-detects your game, loads instantly, protected by a real key + HWID system. No bloat, no spam — just clean, fast, premium.</p>
+  <div class="hero-cta">
+    <a class="btn btn-primary" href="#pricing">Get Started</a>
+    <a class="btn btn-ghost" href="#" id="discordHero">Join Discord</a>
+  </div>
+  <div class="loadbox">
+    <div class="top"><span>Load Kunsy Hub</span><button class="copybtn" id="copyBtn">Copy</button></div>
+    <code id="loadstr">loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/main/loader.lua"))()</code>
+  </div>
+  <div class="stats">
+    <div class="stat"><div class="n" id="stUsers">1,000+</div><div class="l">Active users</div></div>
+    <div class="stat"><div class="n" id="stGames">1</div><div class="l">Supported games</div></div>
+    <div class="stat"><div class="n">99.9%</div><div class="l">Uptime</div></div>
+  </div>
+</div></section>
+
+<section class="block" id="features"><div class="wrap">
+  <div class="shead"><h2>Built different</h2><p>Everything a premium hub needs, nothing it doesn't.</p></div>
+  <div class="grid g3">
+    <div class="feat"><div class="ico">🎯</div><h3>Auto-detect games</h3><p>Loads the right script for your game automatically. Unsupported games show a clean message instead of breaking.</p></div>
+    <div class="feat"><div class="ico">🔑</div><h3>Key + HWID system</h3><p>Server-side validation with device locking. 5 tiers from free to permanent — your keys, your rules.</p></div>
+    <div class="feat"><div class="ico">⚙️</div><h3>Config system</h3><p>Save, load, export & import named configs. Auto-save and autoload so your setup follows you.</p></div>
+    <div class="feat"><div class="ico">🔍</div><h3>Smart search</h3><p>Find any feature instantly — searches both element names and sections in real time.</p></div>
+    <div class="feat"><div class="ico">🎨</div><h3>Clean purple UI</h3><p>Draggable, resizable window with sidebar tabs, toasts, color pickers and more.</p></div>
+    <div class="feat"><div class="ico">🛡️</div><h3>Anti-detection ready</h3><p>Obfuscated loader, proxy-gated source, server-validated keys. Hard to crack, easy to update.</p></div>
+  </div>
+</div></section>
+
+<section class="block" id="games"><div class="wrap">
+  <div class="shead"><h2>Supported games</h2><p>More added every week. Request yours in Discord.</p></div>
+  <div class="grid g3" id="gamesGrid">
+    <div class="gamecard"><div class="gico">🌱</div><div><h3>Grow A Garden 2</h3><div class="badge">● Active</div></div></div>
+  </div>
+</div></section>
+
+<section class="block" id="pricing"><div class="wrap">
+  <div class="shead"><h2>Pick your plan</h2><p>Start free. Upgrade when you're ready.</p></div>
+  <div class="prices">
+    <div class="price"><div class="tag">Free</div><div class="amt">$0</div><div class="dur">1 day · 1 device</div>
+      <ul>
+        <li><span class="ck">✓</span> Core features</li>
+        <li><span class="ck">✓</span> Via Discord bot</li>
+        <li class="off"><span class="xx">✕</span> Premium locked</li>
+      </ul>
+      <a class="btn btn-ghost" href="#" data-discord>Get Free</a>
+    </div>
+    <div class="price"><div class="tag">Ads</div><div class="amt">$0</div><div class="dur">1 day · 1 device</div>
+      <ul>
+        <li><span class="ck">✓</span> Premium unlocked</li>
+        <li><span class="ck">✓</span> Watch a quick ad</li>
+        <li><span class="ck">✓</span> Renews daily</li>
+      </ul>
+      <a class="btn btn-ghost" href="#" id="adsBtn">Get via Ads</a>
+    </div>
+    <div class="price feat-card" style="position:relative"><div class="ribbon">Popular</div><div class="tag">Monthly</div><div class="amt">$2.99</div><div class="dur">30 days · 1 device</div>
+      <ul>
+        <li><span class="ck">✓</span> All premium features</li>
+        <li><span class="ck">✓</span> No ads</li>
+        <li><span class="ck">✓</span> Priority support</li>
+      </ul>
+      <a class="btn btn-primary" href="#" data-buy="monthly">Buy Monthly</a>
+    </div>
+    <div class="price"><div class="tag">Yearly</div><div class="amt">$11.99</div><div class="dur">1 year · 2 devices</div>
+      <ul>
+        <li><span class="ck">✓</span> All premium features</li>
+        <li><span class="ck">✓</span> 2 devices</li>
+        <li><span class="ck">✓</span> Best value</li>
+      </ul>
+      <a class="btn btn-ghost" href="#" data-buy="yearly">Buy Yearly</a>
+    </div>
+    <div class="price"><div class="tag">Permanent</div><div class="amt">$21.99</div><div class="dur">Forever · 3 devices</div>
+      <ul>
+        <li><span class="ck">✓</span> Lifetime access</li>
+        <li><span class="ck">✓</span> 3 devices</li>
+        <li><span class="ck">✓</span> All future updates</li>
+      </ul>
+      <a class="btn btn-ghost" href="#" data-buy="permanent">Buy Permanent</a>
+    </div>
+  </div>
+</div></section>
+
+<section class="block"><div class="bigcta">
+  <h2>Ready to dominate?</h2>
+  <p>Join thousands of players using Kunsy Hub.</p>
+  <a class="btn btn-primary" href="#" id="discordBottom">Join our Discord</a>
+</div></section>
+
+<footer><div class="wrap">
+  <a href="#" class="brand"><span class="logo">K</span> Kunsy Hub</a>
+  <div class="sub">© 2026 Kunsy Hub. Not affiliated with Roblox Corporation.</div>
+</div></footer>
+
+<script>
+const DISCORD = "https://discord.gg/yourserver";
+document.querySelectorAll('#discordTop,#discordHero,#discordBottom,[data-discord]').forEach(function(a){
+  a.addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
+});
+const copyBtn=document.getElementById('copyBtn'),loadstr=document.getElementById('loadstr');
+copyBtn.addEventListener('click',function(){
+  navigator.clipboard.writeText(loadstr.textContent).then(function(){
+    copyBtn.textContent='Copied!';copyBtn.classList.add('copied');
+    setTimeout(function(){copyBtn.textContent='Copy';copyBtn.classList.remove('copied');},1600);
+  });
+});
+const ICONS={GrowAGarden2:'🌱',SlimeRNG:'🟢',PetSim:'🐾',Anime:'⚔️'};
+fetch('https://raw.githubusercontent.com/Kunsyy/hub-library/main/games.json?v='+Date.now())
+  .then(function(r){return r.json();})
+  .then(function(d){
+    const games=d.games||{},keys=Object.keys(games);
+    if(!keys.length)return;
+    const grid=document.getElementById('gamesGrid');grid.innerHTML='';
+    keys.forEach(function(name){
+      const pretty=name.replace(/([a-z])([A-Z0-9])/g,'$1 $2');
+      grid.insertAdjacentHTML('beforeend',
+        '<div class="gamecard"><div class="gico">'+(ICONS[name]||'🎮')+'</div><div><h3>'+pretty+'</h3><div class="badge">● Active</div></div></div>');
+    });
+    document.getElementById('gameCount').textContent=keys.length;
+    document.getElementById('stGames').textContent=keys.length;
+  }).catch(function(){});
+document.querySelectorAll('[data-buy]').forEach(function(b){
+  b.addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
+});
+document.getElementById('adsBtn').addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
+</script>
+</body>
+</html>
