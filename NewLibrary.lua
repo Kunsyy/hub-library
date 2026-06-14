@@ -1302,6 +1302,9 @@ function Library:Setup(config)
     config = config or {}
     self._location = config.Location or CoreGui
 
+    -- bikin folder config di workspace executor (kalau didukung)
+    _ensureFolder()
+
     -- hapus UI lama biar nggak dobel kalau script di-execute ulang
     for _, gui in ipairs(self._location:GetChildren()) do
         if gui.Name == "VS_Library" or gui.Name == "VS_Message" or gui.Name == "VS_KeyCheck" then

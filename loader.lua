@@ -15,13 +15,19 @@
 
 local REPO = "https://raw.githubusercontent.com/Kunsyy/hub-library/main/"
 
+-- fetch dengan cache-busting (executor kayak Potasium suka nge-cache HttpGet)
+local function fetch(file)
+    local bust = "?v=" .. tostring(os.time()) .. tostring(math.random(1,99999))
+    return game:HttpGet(REPO .. file .. bust)
+end
+
 -- ============================================================
 --  1) LOAD UI LIBRARY
 -- ============================================================
 local Library
 do
     local ok, res = pcall(function()
-        return loadstring(game:HttpGet(REPO .. "NewLibrary.lua"))()
+        return loadstring(fetch("NewLibrary.lua"))()
     end)
     Library = res or _G.HubLibrary
     if not Library then
@@ -72,7 +78,7 @@ end
 -- ============================================================
 _G.HubLibrary = Library
 local ok, err = pcall(function()
-    loadstring(game:HttpGet(REPO .. "scripts/" .. matched.script .. ".lua"))()
+    loadstring(fetch("scripts/" .. matched.script .. ".lua"))()
 end)
 if not ok then
     warn("[Hub] Error loading game script '" .. matchedName .. "': " .. tostring(err))
