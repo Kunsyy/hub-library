@@ -10,7 +10,7 @@
  *
  * Env (set via wrangler secret):
  *   DISCORD_PUBLIC_KEY  (verifikasi signature)
- *   RESET_ROLE_ID       (role ID Discord yg boleh pakai /resethwid)
+ *   RESET_ROLE_IDS      (role ID yg boleh /resethwid, bisa banyak pisah koma: "111,222")
  * Bindings:
  *   KEYS   -> KV namespace yang sama dgn key server
  *
@@ -87,10 +87,13 @@ async function cmdGetKey(userId, env) {
   );
 }
 
-// HANYA role tertentu (staff) yang boleh. Bisa reset key siapa aja (bantu user).
+// HANYA role staff yang boleh (RESET_ROLE_IDS = list role dipisah koma).
+// Bisa reset key siapa aja (bantu user).
 async function cmdResetHwid(member, keyArg, env) {
   const roles = (member && member.roles) || [];
-  if (!env.RESET_ROLE_ID || !roles.includes(env.RESET_ROLE_ID)) {
+  const allowed = (env.RESET_ROLE_IDS || "").split(",").map(s => s.trim()).filter(Boolean);
+  const hasRole = allowed.length > 0 && roles.some(r => allowed.includes(r));
+  if (!hasRole) {
     return reply("❌ You don't have permission. Ask staff to reset your HWID.");
   }
   const raw = await env.KEYS.get(keyArg);

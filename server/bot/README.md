@@ -23,8 +23,8 @@ npx wrangler deploy
 # set public key (dari General Information)
 npx wrangler secret put DISCORD_PUBLIC_KEY
 # set role staff yg boleh /resethwid (Role ID Discord — aktifin Developer Mode,
-# klik kanan role -> Copy Role ID)
-npx wrangler secret put RESET_ROLE_ID
+# klik kanan role -> Copy Role ID). Bisa BANYAK role, pisah koma: 111,222,333
+npx wrangler secret put RESET_ROLE_IDS
 ```
 Dapet URL: `https://kunsy-hub-bot.<akun>.workers.dev`
 
