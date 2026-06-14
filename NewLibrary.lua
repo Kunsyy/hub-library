@@ -35,8 +35,10 @@ local HttpService      = game:GetService("HttpService")
 -- ============================================================
 --  PLACEHOLDER (ganti dari Setup juga bisa)
 -- ============================================================
-local LOGO_PLACEHOLDER = "rbxassetid://0"   -- << logo default kalau Setup nggak isi Logo
+local LOGO_PLACEHOLDER = ""                 -- << logo default kalau Setup nggak isi Logo
 local CONFIG_FOLDER    = "VS_Config"        -- folder simpan config di workspace
+local ICON_FOLDER      = "VS_Icons"
+local ICON_BASE        = "https://raw.githubusercontent.com/Kunsyy/hub-library/main/icons/"
 
 -- ============================================================
 --  THEME (UNGU)
@@ -99,10 +101,51 @@ local function roundSide(frame, side, color, radius)
 end
 
 -- ============================================================
+--  ICON LOADER  (getcustomasset, no rbxassetid needed)
+-- ============================================================
+local _iconCache = {}
+local function loadIcon(name)
+    if _iconCache[name] ~= nil then return _iconCache[name] end
+    if not (getcustomasset and writefile and isfile) then
+        _iconCache[name] = ""; return ""
+    end
+    local path = ICON_FOLDER .. "/" .. name .. ".png"
+    if not isfile(path) then
+        if isfolder and makefolder and not isfolder(ICON_FOLDER) then
+            pcall(makefolder, ICON_FOLDER)
+        end
+        local ok, data = pcall(function() return game:HttpGet(ICON_BASE .. name .. ".png", true) end)
+        if ok and data and #data > 0 then pcall(writefile, path, data) end
+    end
+    local url = (isfile(path) and getcustomasset(path)) or ""
+    _iconCache[name] = url
+    return url
+end
+
+-- shortcut buat semua icon yang ada di /icons folder repo
+local Icons = {
+    Home     = function() return loadIcon("home")     end,
+    Settings = function() return loadIcon("settings") end,
+    Gear     = function() return loadIcon("gear")     end,
+    Sword    = function() return loadIcon("sword")    end,
+    Sword2   = function() return loadIcon("sword2")   end,
+    Diamond  = function() return loadIcon("diamond")  end,
+    Shop     = function() return loadIcon("shop")     end,
+    Trophy   = function() return loadIcon("trophy")   end,
+    Notif    = function() return loadIcon("notif")    end,
+    Scroll   = function() return loadIcon("scroll")   end,
+    Location = function() return loadIcon("location") end,
+    Folder   = function() return loadIcon("folder")   end,
+    Gift     = function() return loadIcon("gift")     end,
+    Logo     = function() return loadIcon("logo")     end,
+}
+
+-- ============================================================
 --  LIBRARY
 -- ============================================================
 local Library = {}
 Library.__index = Library
+Library.Icons = Icons
 Library.Flags = {}
 Library._connections = {}
 
