@@ -106,18 +106,25 @@ end
 local _iconCache = {}
 local function loadIcon(name)
     if _iconCache[name] ~= nil then return _iconCache[name] end
-    if not (getcustomasset and writefile and isfile) then
+    if not getcustomasset then
         _iconCache[name] = ""; return ""
     end
     local path = ICON_FOLDER .. "/" .. name .. ".png"
-    if not isfile(path) then
-        if isfolder and makefolder and not isfolder(ICON_FOLDER) then
-            pcall(makefolder, ICON_FOLDER)
+    -- ensure folder exists
+    if makefolder then pcall(makefolder, ICON_FOLDER) end
+    -- download if not on disk yet
+    if not (isfile and isfile(path)) then
+        local ok, data = pcall(function() return game:HttpGet(ICON_BASE .. name .. ".png") end)
+        if ok and data and #data > 100 then
+            if writefile then pcall(writefile, path, data) end
+        else
+            warn("[Hub Icons] Failed to download: " .. name)
+            _iconCache[name] = ""; return ""
         end
-        local ok, data = pcall(function() return game:HttpGet(ICON_BASE .. name .. ".png", true) end)
-        if ok and data and #data > 0 then pcall(writefile, path, data) end
     end
-    local url = (isfile(path) and getcustomasset(path)) or ""
+    -- get content URL
+    local ok2, url = pcall(getcustomasset, path)
+    url = (ok2 and url) or ""
     _iconCache[name] = url
     return url
 end
