@@ -36,6 +36,7 @@ end
 -- ============================================================
 local Setup = Library:Setup({
     Location = CoreGui,
+    Logo     = Library.Icons.Logo,
     Title    = "Kunsy Hub",
     Discord  = "discord.gg/yourserver",
     Version  = "v1.0 (WIP)",
@@ -47,7 +48,7 @@ local Setup = Library:Setup({
 })
 
 -- ===== TAB: FARM =====
-local Farm = Setup:CreateTab({ name = "Farm" })
+local Farm = Setup:CreateTab({ name = "Farm", icon = Library.Icons.Sword })
 
 local Auto = Farm:CreateSection("Auto Farm")
 Auto:CreateToggle({
@@ -68,7 +69,7 @@ Plant:CreateToggle({ name = "Auto Sell", flag = "autoSell", default = false,
     end })
 
 -- ===== TAB: VISUAL (demo elemen baru) =====
-local Visual = Setup:CreateTab({ name = "Visual" })
+local Visual = Setup:CreateTab({ name = "Visual", icon = Library.Icons.Diamond })
 local Theme = Visual:CreateSection("Theme")
 Theme:CreateLabel({ text = "Customize your hub appearance:" })
 Theme:CreateSeparator({})
@@ -78,7 +79,7 @@ Theme:CreateSeparator({ text = "INFO" })
 Theme:CreateParagraph({ title = "About", text = "Kunsy Hub for Grow A Garden 2. Join Discord for updates and key access." })
 
 -- ===== TAB: SHOP =====
-local Shop = Setup:CreateTab({ name = "Shop" })
+local Shop = Setup:CreateTab({ name = "Shop", icon = Library.Icons.Shop })
 local Buy = Shop:CreateSection("Auto Buy")
 Buy:CreateMultiDropdown({
     name = "Buy Seeds", flag = "buySeeds",
@@ -87,7 +88,7 @@ Buy:CreateMultiDropdown({
 })
 
 -- ===== TAB: MISC =====
-local Misc = Setup:CreateTab({ name = "Misc" })
+local Misc = Setup:CreateTab({ name = "Misc", icon = Library.Icons.Settings })
 
 local Server = Misc:CreateSection("Server")
 Server:CreateButton({

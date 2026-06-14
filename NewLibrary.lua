@@ -35,10 +35,8 @@ local HttpService      = game:GetService("HttpService")
 -- ============================================================
 --  PLACEHOLDER (ganti dari Setup juga bisa)
 -- ============================================================
-local LOGO_PLACEHOLDER = ""                 -- << logo default kalau Setup nggak isi Logo
+local LOGO_PLACEHOLDER = "rbxassetid://101654945061026"  -- logo default (Open Cloud upload)
 local CONFIG_FOLDER    = "VS_Config"        -- folder simpan config di workspace
-local ICON_FOLDER      = "VS_Icons"
-local ICON_BASE        = "https://raw.githubusercontent.com/Kunsyy/hub-library/main/icons/"
 
 -- ============================================================
 --  THEME (UNGU)
@@ -101,50 +99,25 @@ local function roundSide(frame, side, color, radius)
 end
 
 -- ============================================================
---  ICON LOADER  (getcustomasset, no rbxassetid needed)
+--  ICONS  (rbxassetid — di-upload via Open Cloud, reliable di semua executor)
+--  Update ID di sini kalau re-upload. Lihat icons/uploaded-ids.json
 -- ============================================================
-local _iconCache = {}
-local function loadIcon(name)
-    if _iconCache[name] ~= nil then return _iconCache[name] end
-    if not getcustomasset then
-        _iconCache[name] = ""; return ""
-    end
-    local path = ICON_FOLDER .. "/" .. name .. ".png"
-    -- ensure folder exists
-    if makefolder then pcall(makefolder, ICON_FOLDER) end
-    -- download if not on disk yet
-    if not (isfile and isfile(path)) then
-        local ok, data = pcall(function() return game:HttpGet(ICON_BASE .. name .. ".png") end)
-        if ok and data and #data > 100 then
-            if writefile then pcall(writefile, path, data) end
-        else
-            warn("[Hub Icons] Failed to download: " .. name)
-            _iconCache[name] = ""; return ""
-        end
-    end
-    -- get content URL
-    local ok2, url = pcall(getcustomasset, path)
-    url = (ok2 and url) or ""
-    _iconCache[name] = url
-    return url
-end
-
--- shortcut buat semua icon yang ada di /icons folder repo
 local Icons = {
-    Home     = function() return loadIcon("home")     end,
-    Settings = function() return loadIcon("settings") end,
-    Gear     = function() return loadIcon("gear")     end,
-    Sword    = function() return loadIcon("sword")    end,
-    Sword2   = function() return loadIcon("sword2")   end,
-    Diamond  = function() return loadIcon("diamond")  end,
-    Shop     = function() return loadIcon("shop")     end,
-    Trophy   = function() return loadIcon("trophy")   end,
-    Notif    = function() return loadIcon("notif")    end,
-    Scroll   = function() return loadIcon("scroll")   end,
-    Location = function() return loadIcon("location") end,
-    Folder   = function() return loadIcon("folder")   end,
-    Gift     = function() return loadIcon("gift")     end,
-    Logo     = function() return loadIcon("logo")     end,
+    Logo     = "rbxassetid://101654945061026",
+    Home     = "rbxassetid://96794263457417",
+    Settings = "rbxassetid://125340642775749",
+    Gear     = "rbxassetid://77874046874610",
+    Sword    = "rbxassetid://138553367383097",
+    Sword2   = "rbxassetid://77718234948249",
+    Diamond  = "rbxassetid://137677675885900",
+    Shop     = "rbxassetid://121285909868734",
+    Trophy   = "rbxassetid://122297454485131",
+    Notif    = "rbxassetid://122214386286059",
+    Scroll   = "rbxassetid://116242379685163",
+    Location = "rbxassetid://98755162339796",
+    Folder   = "rbxassetid://111250111140659",
+    Gift     = "rbxassetid://102569252916143",
+    Empty    = "rbxassetid://138928503825440",
 }
 
 -- ============================================================
