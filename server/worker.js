@@ -49,11 +49,24 @@ function randomKey(len = 24) {
 }
 
 function isBrowser(request) {
-  // executor (game:HttpGet / request) jarang kirim header ini.
-  // browser asli selalu kirim Accept: text/html + Sec-Fetch-Mode: navigate.
-  const accept = request.headers.get("Accept") || "";
-  const mode = request.headers.get("Sec-Fetch-Mode") || "";
-  return accept.includes("text/html") || mode === "navigate";
+  // Browser asli ngirim sinyal-sinyal ini; executor (game:HttpGet/request) nggak.
+  const h = request.headers;
+  const accept = h.get("Accept") || "";
+  // Sec-Fetch-* HANYA dikirim browser beneran (Chrome/Firefox/Edge/dst)
+  if (h.get("Sec-Fetch-Mode") || h.get("Sec-Fetch-Site") || h.get("Sec-Fetch-Dest")) return true;
+  if (h.get("Upgrade-Insecure-Requests")) return true; // navigasi browser
+  if (accept.includes("text/html")) return true;
+  if (h.get("Referer") || h.get("Origin")) return true; // datang dari halaman web
+  return false;
+}
+
+// gerbang akses /raw: tolak browser; kalau CLIENT_SECRET di-set, wajib header cocok
+function rawAllowed(request, env) {
+  if (isBrowser(request)) return false;
+  if (env.CLIENT_SECRET) {
+    return request.headers.get("X-Hub-Client") === env.CLIENT_SECRET;
+  }
+  return true;
 }
 
 // ============================================================
@@ -89,8 +102,8 @@ export default {
 
       // ---------- RAW PROXY (browser-gated) ----------
       if (path.startsWith("/raw/")) {
-        if (isBrowser(request)) {
-          return new Response("400 Invalid Request", { status: 400 });
+        if (!rawAllowed(request, env)) {
+          return new Response("404 Not Found", { status: 404 });
         }
         const file = path.slice(5); // buang "/raw/"
         const res = await fetch(GITHUB_BASE + file, {
