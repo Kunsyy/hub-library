@@ -99,26 +99,27 @@ local function roundSide(frame, side, color, radius)
 end
 
 -- ============================================================
---  ICONS  (rbxthumb — bypass masalah Decal-vs-Image, render asset id apapun)
+--  ICONS  (Image assets di-upload via Studio -> rbxassetid render di semua executor)
 --  Update ID di sini kalau re-upload. Lihat icons/uploaded-ids.json
+--  Logo masih WIP (pakai rbxthumb sementara) -> ganti kalau logo final.
 -- ============================================================
 local function thumb(id) return "rbxthumb://type=Asset&id=" .. id .. "&w=150&h=150" end
 local Icons = {
-    Logo     = thumb(101654945061026),
-    Home     = thumb(96794263457417),
-    Settings = thumb(125340642775749),
-    Gear     = thumb(77874046874610),
-    Sword    = thumb(138553367383097),
-    Sword2   = thumb(77718234948249),
-    Diamond  = thumb(137677675885900),
-    Shop     = thumb(121285909868734),
-    Trophy   = thumb(122297454485131),
-    Notif    = thumb(122214386286059),
-    Scroll   = thumb(116242379685163),
-    Location = thumb(98755162339796),
-    Folder   = thumb(111250111140659),
-    Gift     = thumb(102569252916143),
-    Empty    = thumb(138928503825440),
+    Logo     = thumb(101654945061026),       -- WIP placeholder
+    Home     = "rbxassetid://86527598755783",
+    Settings = "rbxassetid://83572703805151",
+    Gear     = "rbxassetid://139934031665318",
+    Sword    = "rbxassetid://106463958161380",
+    Sword2   = "rbxassetid://127030584943192",
+    Diamond  = "rbxassetid://121534310776905",
+    Shop     = "rbxassetid://114952767371797",
+    Trophy   = "rbxassetid://137426453440412",
+    Notif    = "rbxassetid://131445084342623",
+    Scroll   = "rbxassetid://101647887010375",
+    Location = "rbxassetid://87670232389844",
+    Folder   = "rbxassetid://105904459950210",
+    Gift     = "rbxassetid://78284430469050",
+    Empty    = "rbxassetid://101320488602048",
 }
 
 -- ============================================================
