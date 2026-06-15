@@ -8,10 +8,12 @@
         "Auto Plant",
         "Auto Harvest",
         "Auto Sell",
+        "Anti-AFK"
+      ],
+      "premiumFeatures": [
         "Auto Buy Seeds",
         "Auto Buy Gear",
         "Plant / Pet ESP",
-        "Anti-AFK",
         "Webhook Notifier"
       ]
     }

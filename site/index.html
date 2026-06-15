@@ -106,21 +106,27 @@ section{position:relative;z-index:1}
 .gamecard .sup{font-size:11px;font-weight:700;color:#4ade80;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);padding:3px 9px;border-radius:6px;white-space:nowrap}
 .gamecard .sup.soon{color:#f0b429;background:rgba(240,180,41,.12);border-color:rgba(240,180,41,.3)}
 
-/* game modal */
-.gmodal{position:fixed;inset:0;z-index:100;background:rgba(6,5,12,.78);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:24px}
+/* game drawer (slides in from right) */
+.gmodal{position:fixed;inset:0;z-index:100;background:rgba(6,5,12,.6);backdrop-filter:blur(4px);display:none;justify-content:flex-end}
 .gmodal.open{display:flex}
-.gmbox{background:var(--card);border:1px solid var(--line);border-radius:18px;max-width:460px;width:100%;overflow:hidden;animation:pop .2s ease}
-@keyframes pop{from{transform:scale(.96);opacity:0}to{transform:scale(1);opacity:1}}
-.gmhead{position:relative;aspect-ratio:16/9;background:linear-gradient(135deg,var(--accentd),var(--card2));background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center}
-.gmhead .gmini{font-size:46px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:1px}
-.gmhead .gmclose{position:absolute;top:12px;right:12px;width:32px;height:32px;border-radius:8px;background:rgba(0,0,0,.5);border:none;color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.gmcontent{padding:22px 24px 26px}
-.gmcontent h3{font-size:22px;font-weight:700;margin-bottom:4px}
-.gmcontent .gmsub{font-size:13px;font-weight:600;margin-bottom:18px}
-.gmcontent h4{font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin-bottom:12px}
-.featlist{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.gmbox{background:var(--card);border-left:1px solid var(--line);width:480px;max-width:92vw;height:100%;overflow-y:auto;animation:slideIn .28s cubic-bezier(.4,0,.2,1)}
+@keyframes slideIn{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
+.gmhead{position:relative;height:170px;background:linear-gradient(135deg,var(--accentd),var(--card2));background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center}
+.gmhead .gmini{font-size:46px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:1px;font-family:var(--head)}
+.gmhead .gmclose{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:9px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
+.gmhead .gmclose:hover{background:rgba(0,0,0,.7)}
+.gmcontent{padding:22px 24px 30px}
+.gmcontent h3{font-size:24px;font-weight:700;margin-bottom:4px}
+.gmcontent .gmsub{font-size:13px;font-weight:600;margin-bottom:22px}
+.gmsection{margin-bottom:18px}
+.gmsection .lbl,.gmprem .lbl{display:flex;align-items:center;gap:8px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin-bottom:12px}
+.featlist{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
 .featlist li{font-size:14px;display:flex;gap:8px;align-items:flex-start}
-.featlist li .ck{color:var(--accent2);font-weight:700}
+.featlist li .ck{color:#4ade80;font-weight:700}
+.gmprem{background:rgba(150,89,255,.08);border:1px solid rgba(150,89,255,.28);border-radius:14px;padding:16px 18px}
+.gmprem .lbl{color:var(--accent2)}
+.gmprem .ptag{font-size:10px;font-weight:700;letter-spacing:.5px;color:#fff;background:linear-gradient(135deg,var(--accent2),var(--accentd));padding:3px 8px;border-radius:6px}
+.gmprem .featlist li .ck{color:var(--accent2)}
 .gmsoon{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:18px}
 
 /* pricing */
@@ -313,8 +319,12 @@ function openGame(g){
   sub.style.color=g.supported?'#4ade80':'#f0b429';
   const body=modal.querySelector('#gmBody');
   if(g.supported){
-    var items=(g.features&&g.features.length?g.features:['Auto farm','ESP / visuals','Auto sell','Anti-AFK']);
-    body.innerHTML='<h4>Features</h4><ul class="featlist">'+items.map(function(f){return '<li><span class="ck">✓</span>'+f+'</li>';}).join('')+'</ul>';
+    var free=(g.features&&g.features.length?g.features:['Auto farm','Auto sell','Anti-AFK']);
+    var prem=g.premium||[];
+    var fl=function(items){return '<ul class="featlist">'+items.map(function(f){return '<li><span class="ck">✓</span>'+f+'</li>';}).join('')+'</ul>';};
+    var html='<div class="gmsection"><div class="lbl">Free features</div>'+fl(free)+'</div>';
+    if(prem.length){html+='<div class="gmprem"><div class="lbl"><span class="ptag">PREMIUM</span> Unlocked with a key</div>'+fl(prem)+'</div>';}
+    body.innerHTML=html;
   }else{
     body.innerHTML='<p class="gmsoon">This game is on our roadmap. Want it prioritized? Vote & request it in our Discord.</p><a class="btn btn-primary" id="gmDiscord" href="#">Request in Discord</a>';
     body.querySelector('#gmDiscord').addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
@@ -348,6 +358,7 @@ fetch('https://raw.githubusercontent.com/Kunsyy/hub-library/main/games.json?v='+
         name:info.display||prettyName(name),
         thumb:info.thumb||'',
         features:info.features||[],
+        premium:info.premiumFeatures||[],
         supported:info.supported!==false
       }));
     });
