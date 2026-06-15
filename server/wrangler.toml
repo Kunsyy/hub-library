@@ -3,9 +3,11 @@ main = "worker.js"
 compatibility_date = "2025-01-01"
 
 # custom domain: api.kunsydev.xyz -> Worker (+ workers.dev tetap nyala sbg fallback)
+# + path route di domain utama biar loadstring bersih: kunsydev.xyz/raw/...
 workers_dev = true
 routes = [
-  { pattern = "api.kunsydev.xyz", custom_domain = true }
+  { pattern = "api.kunsydev.xyz", custom_domain = true },
+  { pattern = "kunsydev.xyz/raw/*", zone_name = "kunsydev.xyz" }
 ]
 
 # KV namespace buat nyimpen key.

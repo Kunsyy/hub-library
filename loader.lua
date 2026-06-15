@@ -17,7 +17,8 @@
 --]]
 
 -- ⚙️ SUMBER FILE: lewat Worker (browser -> 404, cuma executor bisa, update ~30 detik)
-local REPO = "https://api.kunsydev.xyz/raw/"
+local REPO = "https://kunsydev.xyz/raw/"
+--   Fallback (worker yg sama, beda host): "https://api.kunsydev.xyz/raw/"
 --   Fallback GitHub langsung (file kebaca di browser):
 -- local REPO = "https://raw.githubusercontent.com/Kunsyy/hub-library/main/"
 
