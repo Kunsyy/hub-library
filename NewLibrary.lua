@@ -47,11 +47,16 @@ local function getLogoImage(url)
             local hash = string.gsub(url, "[^%w]", "")
             local path = CONFIG_FOLDER .. "/logo_" .. string.sub(hash, -10) .. ".png"
             if isfile and not isfile(path) then
-                if isfolder and not isfolder(CONFIG_FOLDER) then makefolder(CONFIG_FOLDER) end
-                local res = pcall(function() return req({Url = url, Method = "GET"}) end)
-                if type(res) == "table" and res.StatusCode == 200 then writefile(path, res.Body) end
+                if isfolder and not isfolder(CONFIG_FOLDER) then pcall(makefolder, CONFIG_FOLDER) end
+                local ok, res = pcall(function() return req({Url = url, Method = "GET"}) end)
+                if ok and type(res) == "table" and res.StatusCode == 200 then 
+                    pcall(writefile, path, res.Body) 
+                end
             end
-            if isfile and isfile(path) then return getcustomasset(path) end
+            if isfile and isfile(path) then 
+                local ok, asset = pcall(getcustomasset, path)
+                if ok and asset then return asset end
+            end
         end
     end
     return url
