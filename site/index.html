@@ -1,379 +1,142 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Kunsy Hub — Premium Roblox Scripts</title>
-<meta name="description" content="Kunsy Hub — premium Roblox script hub. Auto-detect games, key system, HWID protection. One line to load.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-:root{
-  --bg:#0c0a14; --bg2:#120e1e; --card:#1a1426; --card2:#221934;
-  --line:#2e2442; --accent:#9659ff; --accent2:#b98bff; --accentd:#6c3cc8;
-  --text:#f0ecfa; --sub:#988aaf; --radius:14px;
-  --head:'Space Grotesk','Inter',system-ui,sans-serif;
-}
-*{margin:0;padding:0;box-sizing:border-box}
-html{scroll-behavior:smooth}
-body{font-family:'Inter',system-ui,sans-serif;background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden}
-h1,h2,h3,.brand,.stat .n,.price .amt,.hero h1{font-family:var(--head);letter-spacing:-.01em}
-a{color:inherit;text-decoration:none}
-.wrap{max-width:1120px;margin:0 auto;padding:0 24px}
-.accent{color:var(--accent2)}
-@keyframes ping{0%{box-shadow:0 0 0 0 rgba(74,222,128,.5)}70%{box-shadow:0 0 0 7px rgba(74,222,128,0)}100%{box-shadow:0 0 0 0 rgba(74,222,128,0)}}
-
-/* glow bg */
-.glow{position:fixed;border-radius:50%;filter:blur(120px);opacity:.22;z-index:0;pointer-events:none}
-.glow.a{width:480px;height:480px;background:var(--accent);top:-160px;left:-120px}
-.glow.b{width:420px;height:420px;background:#5a2db8;top:340px;right:-160px}
-
-/* nav */
-nav{position:sticky;top:0;z-index:50;backdrop-filter:blur(12px);background:rgba(12,10,20,.72);border-bottom:1px solid var(--line)}
-nav .wrap{display:flex;align-items:center;justify-content:space-between;height:64px}
-.brand{display:flex;align-items:center;gap:10px;font-weight:800;font-size:18px}
-.brand .logo{width:34px;height:34px;border-radius:9px;background:linear-gradient(135deg,var(--accent2),var(--accentd));display:flex;align-items:center;justify-content:center;font-weight:800;color:#fff}
-.navlinks{display:flex;gap:28px;align-items:center}
-.navlinks a{color:var(--sub);font-weight:500;font-size:15px;transition:.2s}
-.navlinks a:hover{color:var(--text)}
-.btn{display:inline-flex;align-items:center;gap:8px;padding:11px 22px;border-radius:999px;font-weight:600;font-size:15px;cursor:pointer;border:none;transition:.2s}
-.btn-primary{background:linear-gradient(135deg,var(--accent2),var(--accentd));color:#fff}
-.btn-primary:hover{transform:translateY(-1px);box-shadow:0 8px 24px rgba(150,89,255,.35)}
-.btn-ghost{background:var(--card2);color:var(--text);border:1px solid var(--line)}
-.btn-ghost:hover{background:var(--card);border-color:var(--accent)}
-
-/* hero */
-section{position:relative;z-index:1}
-.hero{padding:90px 0 70px;text-align:center}
-.pill{display:inline-flex;align-items:center;gap:8px;padding:6px 14px;border-radius:999px;background:var(--card2);border:1px solid var(--line);font-size:13px;color:var(--sub);margin-bottom:26px}
-.pill .dot{width:8px;height:8px;border-radius:50%;background:#4ade80;animation:ping 2s ease-out infinite}
-.hero h1{font-size:62px;line-height:1.05;font-weight:800;letter-spacing:-1.5px;margin-bottom:20px}
-.hero p.lead{font-size:19px;color:var(--sub);max-width:620px;margin:0 auto 34px}
-.hero-cta{display:flex;gap:14px;justify-content:center;flex-wrap:wrap;margin-bottom:44px}
-
-/* loadstring box */
-.loadbox{max-width:720px;margin:0 auto;background:#08060f;border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;text-align:left;box-shadow:0 0 0 1px rgba(255,255,255,.04) inset,0 20px 60px -20px rgba(150,89,255,.25)}
-.loadbox .top{display:flex;align-items:center;gap:12px;padding:11px 16px;background:rgba(255,255,255,.03);border-bottom:1px solid var(--line)}
-.loadbox .dots{display:flex;gap:7px}
-.loadbox .dots i{width:11px;height:11px;border-radius:50%;display:inline-block}
-.loadbox .dots i:nth-child(1){background:#ff5f57}.loadbox .dots i:nth-child(2){background:#febc2e}.loadbox .dots i:nth-child(3){background:#28c840}
-.loadbox .top span{font-size:13px;color:var(--sub);font-weight:500;font-family:var(--head)}
-.loadbox .top .copybtn{margin-left:auto}
-.loadbox code{display:block;padding:18px;font-family:'JetBrains Mono','SF Mono',Consolas,monospace;font-size:13.5px;color:#cbbdf0;white-space:pre-wrap;word-break:break-all;line-height:1.7}
-.copybtn{background:var(--accent);color:#fff;border:none;padding:6px 14px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;transition:.2s}
-.copybtn:hover{background:var(--accent2)}
-.copybtn.copied{background:#4ade80}
-
-/* stats */
-.stats{display:flex;gap:48px;justify-content:center;flex-wrap:wrap;margin-top:54px}
-.stat{text-align:center}
-.stat .n{font-size:34px;font-weight:800;background:linear-gradient(135deg,var(--accent2),var(--accent));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.stat .l{font-size:14px;color:var(--sub)}
-
-/* section heads */
-.shead{text-align:center;margin-bottom:48px}
-.shead h2{font-size:40px;font-weight:800;letter-spacing:-1px;margin-bottom:12px}
-.shead p{color:var(--sub);font-size:17px}
-.block{padding:80px 0}
-
-/* feature grid */
-.grid{display:grid;gap:18px}
-.g3{grid-template-columns:repeat(3,1fr)}
-.g4{grid-template-columns:repeat(4,1fr)}
-.feat{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px;transition:.2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-.feat:hover{border-color:var(--accent);transform:translateY(-3px);box-shadow:inset 0 1px 0 rgba(255,255,255,.06),0 16px 40px -18px rgba(150,89,255,.4)}
-.feat .ico{width:46px;height:46px;border-radius:11px;background:var(--card2);display:flex;align-items:center;justify-content:center;font-size:22px;margin-bottom:16px}
-.feat h3{font-size:18px;font-weight:600;margin-bottom:8px}
-.feat p{color:var(--sub);font-size:15px}
-
-/* status strip */
-.statusbar{display:flex;gap:30px;justify-content:center;flex-wrap:wrap;margin-bottom:30px;font-size:12.5px;font-weight:600;letter-spacing:.6px;color:var(--sub)}
-.statusbar span{display:inline-flex;align-items:center;gap:8px;text-transform:uppercase}
-.statusbar .d{display:inline-block;width:9px;height:9px;border-radius:50%}
-.statusbar .on{background:#4ade80;box-shadow:0 0 8px #4ade80}
-.statusbar .pr{background:var(--accent2);box-shadow:0 0 8px var(--accent2)}
-.statusbar .up{background:#38bdf8;box-shadow:0 0 8px #38bdf8}
-
-/* games */
-.gamecard{position:relative;background:var(--card);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;cursor:pointer;transition:.2s;display:flex;flex-direction:column}
-.gamecard:hover{border-color:var(--accent);transform:translateY(-3px)}
-.gamecard .gthumb{position:relative;aspect-ratio:16/10;background:linear-gradient(135deg,var(--accentd),var(--card2));background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center}
-.gamecard .gthumb .gini{font-size:32px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:1px}
-.gamecard .gthumb .seehint{position:absolute;inset:0;background:rgba(10,8,18,.78);display:flex;align-items:center;justify-content:center;gap:6px;font-weight:600;font-size:14px;color:var(--text);opacity:0;transition:.2s}
-.gamecard:hover .gthumb .seehint{opacity:1}
-.gamecard .gbody{padding:13px 15px;display:flex;align-items:center;justify-content:space-between;gap:10px}
-.gamecard .gbody h3{font-size:15.5px;font-weight:600}
-.gamecard .sup{font-size:11px;font-weight:700;color:#4ade80;background:rgba(74,222,128,.12);border:1px solid rgba(74,222,128,.3);padding:3px 9px;border-radius:6px;white-space:nowrap}
-.gamecard .sup.soon{color:#f0b429;background:rgba(240,180,41,.12);border-color:rgba(240,180,41,.3)}
-
-/* game drawer (slides in from right) */
-.gmodal{position:fixed;inset:0;z-index:100;background:rgba(6,5,12,.6);backdrop-filter:blur(4px);display:none;justify-content:flex-end}
-.gmodal.open{display:flex}
-.gmbox{background:var(--card);border-left:1px solid var(--line);width:480px;max-width:92vw;height:100%;overflow-y:auto;animation:slideIn .28s cubic-bezier(.4,0,.2,1)}
-@keyframes slideIn{from{transform:translateX(60px);opacity:0}to{transform:translateX(0);opacity:1}}
-.gmhead{position:relative;height:170px;background:linear-gradient(135deg,var(--accentd),var(--card2));background-size:cover;background-position:center;display:flex;align-items:center;justify-content:center}
-.gmhead .gmini{font-size:46px;font-weight:800;color:rgba(255,255,255,.85);letter-spacing:1px;font-family:var(--head)}
-.gmhead .gmclose{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:9px;background:rgba(0,0,0,.45);border:1px solid rgba(255,255,255,.12);color:#fff;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.2s}
-.gmhead .gmclose:hover{background:rgba(0,0,0,.7)}
-.gmcontent{padding:22px 24px 30px}
-.gmcontent h3{font-size:24px;font-weight:700;margin-bottom:4px}
-.gmcontent .gmsub{font-size:13px;font-weight:600;margin-bottom:22px}
-.gmsection{margin-bottom:18px}
-.gmsection .lbl,.gmprem .lbl{display:flex;align-items:center;gap:8px;font-size:12px;text-transform:uppercase;letter-spacing:1px;color:var(--sub);margin-bottom:12px}
-.featlist{list-style:none;display:grid;grid-template-columns:1fr 1fr;gap:10px 14px}
-.featlist li{font-size:14px;display:flex;gap:8px;align-items:flex-start}
-.featlist li .ck{color:#4ade80;font-weight:700}
-.gmprem{background:rgba(150,89,255,.08);border:1px solid rgba(150,89,255,.28);border-radius:14px;padding:16px 18px}
-.gmprem .lbl{color:var(--accent2)}
-.gmprem .ptag{font-size:10px;font-weight:700;letter-spacing:.5px;color:#fff;background:linear-gradient(135deg,var(--accent2),var(--accentd));padding:3px 8px;border-radius:6px}
-.gmprem .featlist li .ck{color:var(--accent2)}
-.gmsoon{font-size:14px;color:var(--sub);line-height:1.6;margin-bottom:18px}
-
-/* pricing */
-.prices{display:grid;grid-template-columns:repeat(5,1fr);gap:14px;align-items:stretch}
-.price{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:26px 20px;display:flex;flex-direction:column;transition:.2s;box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-.price:hover{transform:translateY(-4px);border-color:var(--accent)}
-.price.feat-card{border:2px solid var(--accent);background:var(--card2)}
-.price .tag{font-size:12px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent2);margin-bottom:10px}
-.price .amt{font-size:34px;font-weight:800;margin-bottom:2px}
-.price .amt small{font-size:14px;color:var(--sub);font-weight:500}
-.price .dur{font-size:13px;color:var(--sub);margin-bottom:18px}
-.price ul{list-style:none;flex:1;margin-bottom:20px}
-.price li{font-size:14px;color:var(--text);padding:7px 0;display:flex;gap:8px;align-items:flex-start}
-.price li.off{color:var(--sub);opacity:.55}
-.price li .ck{color:#4ade80;font-weight:700}
-.price li .xx{color:#f0726f}
-.ribbon{position:absolute;top:14px;right:14px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px}
-
-/* cta */
-.bigcta{margin:0 24px;background:linear-gradient(135deg,#2a1a4d,#1a1230);border:1px solid var(--line);border-radius:24px;padding:64px 24px;text-align:center}
-.bigcta h2{font-size:42px;font-weight:800;letter-spacing:-1px;margin-bottom:14px}
-.bigcta p{color:var(--sub);font-size:18px;margin-bottom:30px}
-
-footer{border-top:1px solid var(--line);padding:40px 0;margin-top:80px}
-footer .wrap{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
-footer .sub{color:var(--sub);font-size:14px}
-
-@media(max-width:900px){
-  .g3,.g4{grid-template-columns:repeat(2,1fr)}
-  .prices{grid-template-columns:repeat(2,1fr)}
-  .hero h1{font-size:42px}
-  .navlinks{display:none}
-}
-@media(max-width:560px){
-  .g3,.g4,.prices{grid-template-columns:1fr}
-  .hero h1{font-size:36px}
-}
-</style>
+    <meta charSet="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Kunsy Hub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-<div class="glow a"></div><div class="glow b"></div>
+    <nav class="navbar">
+        <div class="nav-container">
+            <a class="nav-brand group" href="index.html">
+                <span class="logo-icon">K</span>
+            </a>
+            <div class="nav-links">
+                <a href="index.html" class="active">home</a>
+                <a href="pricing.html">get key</a>
+                <a href="games.html">games</a>
+                <a href="pricing.html" class="premium-glow">premium</a>
+                <a href="#" class="discord-link">discord</a>
+            </div>
+            <button class="menu-btn">☰</button>
+        </div>
+    </nav>
 
-<nav><div class="wrap">
-  <a href="#" class="brand"><span class="logo">K</span> Kunsy Hub</a>
-  <div class="navlinks">
-    <a href="#features">Features</a>
-    <a href="#games">Games</a>
-    <a href="#pricing">Pricing</a>
-    <a href="#" id="discordTop">Discord</a>
-  </div>
-  <a class="btn btn-primary" href="#pricing">Get Key</a>
-</div></nav>
+    <section class="hero-section">
+        <div class="hero-content">
+            <h1 class="hero-title"><span class="text-accent">kunsy</span></h1>
+            
+            <div class="code-box-wrapper">
+                <img src="https://aged-haze-1b3d.marvnesterking.workers.dev/cat_jump.gif" alt="cat" class="cat-gif">
+                <div class="code-box">
+                    <div class="code-header">
+                        <div class="dots"><i></i><i></i><i></i></div>
+                        <span class="lang">lua</span>
+                    </div>
+                    <div class="code-body">
+                        <code><span class="c-func">loadstring</span><span class="c-punc">(</span><span class="c-obj">game</span><span class="c-punc">:</span><span class="c-func">HttpGet</span><span class="c-punc">(</span><span class="c-str">"https://kunsydev.xyz/raw/loader.lua"</span><span class="c-punc">))()</span></code>
+                        <button class="copy-btn" id="copyBtn">copy</button>
+                    </div>
+                </div>
+            </div>
+            
+            <p class="hero-typing"><span class="text-accent font-semibold">premium scripts.</span><span class="cursor">|</span></p>
+            
+            <div class="hero-buttons">
+                <a class="btn-primary" href="pricing.html">get your key</a>
+                <a class="btn-outline" href="games.html">view games</a>
+            </div>
+        </div>
+    </section>
 
-<section class="hero"><div class="wrap">
-  <div class="pill"><span class="dot"></span> v1.0 · <span id="gameCount">1</span> game supported</div>
-  <h1>Premium Roblox scripts,<br><span class="accent">refined</span>.</h1>
-  <p class="lead">One line to load. Kunsy Hub detects your game, validates your key, and runs — fast, stable, and protected by server-side HWID locking.</p>
-  <div class="hero-cta">
-    <a class="btn btn-primary" href="#pricing">Get a key</a>
-    <a class="btn btn-ghost" href="#" id="discordHero">Join Discord</a>
-  </div>
-  <div class="loadbox">
-    <div class="top"><span class="dots"><i></i><i></i><i></i></span><span>loader.lua</span><button class="copybtn" id="copyBtn">Copy</button></div>
-    <code id="loadstr">loadstring(game:HttpGet("https://kunsydev.xyz/raw/loader.lua"))()</code>
-  </div>
-  <div class="stats">
-    <div class="stat"><div class="n" id="stUsers">200+</div><div class="l">Active users</div></div>
-    <div class="stat"><div class="n" id="stGames">1</div><div class="l">Supported games</div></div>
-    <div class="stat"><div class="n">99.9%</div><div class="l">Uptime</div></div>
-  </div>
-</div></section>
+    <section class="features-section">
+        <div class="container">
+            <div class="section-header">
+                <h2>why choose <span class="text-accent">kunsy</span>?</h2>
+                <p>built for performance and safety</p>
+            </div>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <h3>undetected</h3>
+                    <p>scripts are frequently updated to stay undetected and safe to use.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>best features</h3>
+                    <p>packed with powerful features like auto farming every aspect of the game and more.</p>
+                </div>
+                <div class="feature-card">
+                    <h3>optimized code</h3>
+                    <p>clean, lightweight scripts that run smoothly without slowing down your game.</p>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<section class="block" id="features"><div class="wrap">
-  <div class="shead"><h2>Why Kunsy Hub</h2><p>The essentials, engineered to be fast, clean, and reliable.</p></div>
-  <div class="grid g3">
-    <div class="feat"><div class="ico">🎯</div><h3>Auto-detect games</h3><p>Loads the right script for your game automatically. Unsupported games show a clean message instead of breaking.</p></div>
-    <div class="feat"><div class="ico">🔑</div><h3>Key + HWID system</h3><p>Server-side validation with device locking. 5 tiers from free to permanent — your keys, your rules.</p></div>
-    <div class="feat"><div class="ico">⚙️</div><h3>Config system</h3><p>Save, load, export & import named configs. Auto-save and autoload so your setup follows you.</p></div>
-    <div class="feat"><div class="ico">🔍</div><h3>Smart search</h3><p>Find any feature instantly — searches both element names and sections in real time.</p></div>
-    <div class="feat"><div class="ico">🎨</div><h3>Clean purple UI</h3><p>Draggable, resizable window with sidebar tabs, toasts, color pickers and more.</p></div>
-    <div class="feat"><div class="ico">🛡️</div><h3>Anti-detection ready</h3><p>Obfuscated loader, proxy-gated source, server-validated keys. Hard to crack, easy to update.</p></div>
-  </div>
-</div></section>
+    <section class="faq-section">
+        <div class="container-small">
+            <div class="section-header">
+                <h2>faq</h2>
+            </div>
+            <div class="faq-list">
+                <div class="faq-item">
+                    <button class="faq-btn">
+                        <h3>do the scripts work on mobile?</h3>
+                        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="faq-content">
+                        <p>yes! most of our scripts are compatible with popular Android executors.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-btn">
+                        <h3>will I get banned for using these scripts?</h3>
+                        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="faq-content">
+                        <p>we build every script with safety in mind to minimize detection. while no script is 100% risk-free, we do our best to keep things safe.</p>
+                    </div>
+                </div>
+                <div class="faq-item">
+                    <button class="faq-btn">
+                        <h3>what payment methods are accepted?</h3>
+                        <svg class="icon" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7"></path></svg>
+                    </button>
+                    <div class="faq-content">
+                        <p>we accept most major payment methods for premium plan.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
 
-<section class="block" id="games"><div class="wrap">
-  <div class="statusbar">
-    <span><i class="d on"></i> Servers online</span>
-    <span><i class="d pr"></i> HWID protected</span>
-    <span><i class="d up"></i> Updated daily</span>
-  </div>
-  <div class="shead"><h2>Supported games</h2><p>More added every week. Click a game to see its features.</p></div>
-  <div class="grid g4" id="gamesGrid"></div>
-</div></section>
+    <section class="cta-section">
+        <div class="cta-bg"></div>
+        <div class="container-small text-center relative z-10">
+            <h2>ready to use <span class="text-accent">kunsy</span>?</h2>
+            <div class="hero-buttons justify-center mt-8">
+                <a class="btn-primary" href="pricing.html">get free key</a>
+                <a class="btn-outline discord-link" href="#">join discord</a>
+            </div>
+        </div>
+    </section>
 
-<section class="block" id="pricing"><div class="wrap">
-  <div class="shead"><h2>Pick your plan</h2><p>Start free. Upgrade when you're ready.</p></div>
-  <div class="prices">
-    <div class="price"><div class="tag">Free</div><div class="amt">$0</div><div class="dur">1 day · 1 device</div>
-      <ul>
-        <li><span class="ck">✓</span> Core features</li>
-        <li><span class="ck">✓</span> Via Discord bot</li>
-        <li class="off"><span class="xx">✕</span> Premium locked</li>
-      </ul>
-      <a class="btn btn-ghost" href="#" data-discord>Get Free</a>
-    </div>
-    <div class="price"><div class="tag">Ads</div><div class="amt">$0</div><div class="dur">1 day · 1 device</div>
-      <ul>
-        <li><span class="ck">✓</span> Premium unlocked</li>
-        <li><span class="ck">✓</span> Watch a quick ad</li>
-        <li><span class="ck">✓</span> Renews daily</li>
-      </ul>
-      <a class="btn btn-ghost" href="#" id="adsBtn">Get via Ads</a>
-    </div>
-    <div class="price"><div class="tag">Monthly</div><div class="amt">$2.99</div><div class="dur">30 days · 3 devices</div>
-      <ul>
-        <li><span class="ck">✓</span> All premium features</li>
-        <li><span class="ck">✓</span> No ads</li>
-        <li><span class="ck">✓</span> Priority support</li>
-      </ul>
-      <a class="btn btn-ghost" href="#" data-buy="monthly">Buy Monthly</a>
-    </div>
-    <div class="price feat-card" style="position:relative"><div class="ribbon">Popular</div><div class="tag">Yearly</div><div class="amt">$11.99</div><div class="dur">1 year · 10 devices</div>
-      <ul>
-        <li><span class="ck">✓</span> All premium features</li>
-        <li><span class="ck">✓</span> 10 devices</li>
-        <li><span class="ck">✓</span> Best value</li>
-      </ul>
-      <a class="btn btn-primary" href="#" data-buy="yearly">Buy Yearly</a>
-    </div>
-    <div class="price"><div class="tag">Permanent</div><div class="amt">$21.99</div><div class="dur">Forever · 25 devices</div>
-      <ul>
-        <li><span class="ck">✓</span> Lifetime access</li>
-        <li><span class="ck">✓</span> 25 devices</li>
-        <li><span class="ck">✓</span> All future updates</li>
-      </ul>
-      <a class="btn btn-ghost" href="#" data-buy="permanent">Buy Permanent</a>
-    </div>
-  </div>
-</div></section>
+    <footer>
+        <div class="container footer-flex">
+            <a class="footer-brand" href="/">
+                <span class="logo-icon-small">K</span>
+                <span class="text-accent">kunsy</span>
+            </a>
+            <div class="footer-sub">we luv kunsy!</div>
+            <div class="footer-links">
+                <a href="#" class="discord-link">discord</a>
+                <a href="pricing.html" class="premium-glow">premium</a>
+            </div>
+        </div>
+    </footer>
 
-<section class="block"><div class="bigcta">
-  <h2>Get started in seconds</h2>
-  <p>Grab your key, paste one line, and you're in.</p>
-  <a class="btn btn-primary" href="#" id="discordBottom">Join our Discord</a>
-</div></section>
-
-<footer><div class="wrap">
-  <a href="#" class="brand"><span class="logo">K</span> Kunsy Hub</a>
-  <div class="sub">© 2026 Kunsy Hub. Not affiliated with Roblox Corporation.</div>
-</div></footer>
-
-<div class="gmodal" id="gmodal">
-  <div class="gmbox">
-    <div class="gmhead"><span class="gmini"></span><button class="gmclose" aria-label="Close">✕</button></div>
-    <div class="gmcontent">
-      <h3 id="gmName">Game</h3>
-      <div class="gmsub" id="gmSub">● Supported</div>
-      <div id="gmBody"></div>
-    </div>
-  </div>
-</div>
-
-<script>
-const DISCORD = "https://discord.gg/pxWVmpjV";
-document.querySelectorAll('#discordTop,#discordHero,#discordBottom,[data-discord]').forEach(function(a){
-  a.addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
-});
-const copyBtn=document.getElementById('copyBtn'),loadstr=document.getElementById('loadstr');
-copyBtn.addEventListener('click',function(){
-  navigator.clipboard.writeText(loadstr.textContent).then(function(){
-    copyBtn.textContent='Copied!';copyBtn.classList.add('copied');
-    setTimeout(function(){copyBtn.textContent='Copy';copyBtn.classList.remove('copied');},1600);
-  });
-});
-function prettyName(s){return s
-  .replace(/([a-z0-9])([A-Z])/g,'$1 $2')
-  .replace(/([A-Za-z])([0-9])/g,'$1 $2')
-  .replace(/([A-Z]+)([A-Z][a-z])/g,'$1 $2')
-  .trim();}
-function initials(s){return s.split(/\s+/).filter(Boolean).slice(0,3).map(function(w){return w[0];}).join('').toUpperCase();}
-
-const modal=document.getElementById('gmodal');
-function openGame(g){
-  const head=modal.querySelector('.gmhead');
-  head.style.backgroundImage=g.thumb?('url('+g.thumb+')'):'';
-  head.querySelector('.gmini').textContent=g.thumb?'':initials(g.name);
-  modal.querySelector('#gmName').textContent=g.name;
-  const sub=modal.querySelector('#gmSub');
-  sub.textContent=g.supported?'● Supported':'● Coming soon';
-  sub.style.color=g.supported?'#4ade80':'#f0b429';
-  const body=modal.querySelector('#gmBody');
-  if(g.supported){
-    var free=(g.features&&g.features.length?g.features:['Auto farm','Auto sell','Anti-AFK']);
-    var prem=g.premium||[];
-    var fl=function(items){return '<ul class="featlist">'+items.map(function(f){return '<li><span class="ck">✓</span>'+f+'</li>';}).join('')+'</ul>';};
-    var html='<div class="gmsection"><div class="lbl">Free features</div>'+fl(free)+'</div>';
-    if(prem.length){html+='<div class="gmprem"><div class="lbl"><span class="ptag">PREMIUM</span> Unlocked with a key</div>'+fl(prem)+'</div>';}
-    body.innerHTML=html;
-  }else{
-    body.innerHTML='<p class="gmsoon">This game is on our roadmap. Want it prioritized? Vote & request it in our Discord.</p><a class="btn btn-primary" id="gmDiscord" href="#">Request in Discord</a>';
-    body.querySelector('#gmDiscord').addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
-  }
-  modal.classList.add('open');
-}
-modal.addEventListener('click',function(e){if(e.target===modal||e.target.closest('.gmclose'))modal.classList.remove('open');});
-document.addEventListener('keydown',function(e){if(e.key==='Escape')modal.classList.remove('open');});
-
-function makeCard(g){
-  const card=document.createElement('div');
-  card.className='gamecard';
-  card.innerHTML=
-    '<div class="gthumb"'+(g.thumb?(' style="background-image:url('+g.thumb+')"'):'')+'>'+
-      (g.thumb?'':'<span class="gini">'+initials(g.name)+'</span>')+
-      '<div class="seehint">See features →</div>'+
-    '</div>'+
-    '<div class="gbody"><h3>'+g.name+'</h3><span class="sup'+(g.supported?'':' soon')+'">'+(g.supported?'Supported':'Soon')+'</span></div>';
-  card.addEventListener('click',function(){openGame(g);});
-  return card;
-}
-
-fetch('https://raw.githubusercontent.com/Kunsyy/hub-library/main/games.json?v='+Date.now())
-  .then(function(r){return r.json();})
-  .then(function(d){
-    const games=d.games||{},keys=Object.keys(games),grid=document.getElementById('gamesGrid');
-    grid.innerHTML='';
-    keys.forEach(function(name){
-      const info=games[name];
-      grid.appendChild(makeCard({
-        name:info.display||prettyName(name),
-        thumb:info.thumb||'',
-        features:info.features||[],
-        premium:info.premiumFeatures||[],
-        supported:info.supported!==false
-      }));
-    });
-    (d.comingSoon||[]).forEach(function(item){
-      const obj=(typeof item==='string')?{name:item}:item;
-      grid.appendChild(makeCard({name:obj.name,thumb:obj.thumb||'',features:[],supported:false}));
-    });
-    document.getElementById('gameCount').textContent=keys.length;
-    document.getElementById('stGames').textContent=keys.length;
-  }).catch(function(){});
-
-document.querySelectorAll('[data-buy]').forEach(function(b){
-  b.addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
-});
-document.getElementById('adsBtn').addEventListener('click',function(e){e.preventDefault();window.open(DISCORD,'_blank');});
-</script>
+    <script src="main.js"></script>
 </body>
 </html>

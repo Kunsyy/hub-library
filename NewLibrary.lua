@@ -29,6 +29,7 @@
 
 local TweenService     = game:GetService("TweenService")
 local UserInputService = game:GetService("UserInputService")
+local RunService       = game:GetService("RunService")
 local CoreGui          = game:GetService("CoreGui")
 local HttpService      = game:GetService("HttpService")
 
@@ -37,6 +38,24 @@ local HttpService      = game:GetService("HttpService")
 -- ============================================================
 local LOGO_PLACEHOLDER = "rbxthumb://type=Asset&id=101654945061026&w=150&h=150"  -- logo default (Open Cloud upload)
 local CONFIG_FOLDER    = "VS_Config"        -- folder simpan config di workspace
+
+local function getLogoImage(url)
+    if not url or url == "" then return LOGO_PLACEHOLDER end
+    if string.match(url, "^http") then
+        local req = (syn and syn.request) or (http and http.request) or http_request or request
+        if req and writefile and getcustomasset then
+            local hash = string.gsub(url, "[^%w]", "")
+            local path = CONFIG_FOLDER .. "/logo_" .. string.sub(hash, -10) .. ".png"
+            if isfile and not isfile(path) then
+                if isfolder and not isfolder(CONFIG_FOLDER) then makefolder(CONFIG_FOLDER) end
+                local res = pcall(function() return req({Url = url, Method = "GET"}) end)
+                if type(res) == "table" and res.StatusCode == 200 then writefile(path, res.Body) end
+            end
+            if isfile and isfile(path) then return getcustomasset(path) end
+        end
+    end
+    return url
+end
 
 -- ============================================================
 --  THEME (UNGU)
@@ -65,6 +84,22 @@ local SMOOTH = TweenInfo.new(0.28, Enum.EasingStyle.Quint, Enum.EasingDirection.
 -- ============================================================
 local function tween(obj, info, props)
     local t = TweenService:Create(obj, info, props); t:Play(); return t
+end
+local function addShadow(parent, intensity)
+    local shadow = Instance.new("ImageLabel")
+    shadow.Name = "Shadow"
+    shadow.AnchorPoint = Vector2.new(0.5, 0.5)
+    shadow.Position = UDim2.fromScale(0.5, 0.5)
+    shadow.Size = UDim2.new(1, 47, 1, 47)
+    shadow.BackgroundTransparency = 1
+    shadow.Image = "rbxassetid://6015897843"
+    shadow.ImageColor3 = Color3.new(0, 0, 0)
+    shadow.ImageTransparency = intensity or 0.4
+    shadow.SliceCenter = Rect.new(49, 49, 450, 450)
+    shadow.ScaleType = Enum.ScaleType.Slice
+    shadow.ZIndex = -1
+    shadow.Parent = parent
+    return shadow
 end
 local function corner(p, r)
     local c = Instance.new("UICorner"); c.CornerRadius = UDim.new(0, r or 8); c.Parent = p; return c
@@ -387,6 +422,7 @@ function Library:createDisplayMessage(title, desc, buttons, style)
     frame.AnchorPoint = Vector2.new(0.5,0.5); frame.BackgroundColor3 = Theme.Window
     frame.Parent = screen
     corner(frame, 12); stroke(frame, accent, 1.4, 0.2); pad(frame, 16)
+    addShadow(frame, 0.5)
     local lay = Instance.new("UIListLayout", frame); lay.Padding = UDim.new(0,10)
 
     local t = Instance.new("TextLabel")
@@ -453,6 +489,7 @@ function Library:Notify(opts)
     card.BackgroundColor3 = Theme.Card; card.Parent = stack
     card.LayoutOrder = tick() * 1000 % 2147483647
     corner(card,10); pad(card,12)
+    addShadow(card, 0.4)
     local accentBar = Instance.new("Frame")
     accentBar.Size = UDim2.new(0,3,1,-8); accentBar.Position = UDim2.new(0,-8,0,4)
     accentBar.BackgroundColor3 = accent; accentBar.BorderSizePixel = 0; accentBar.Parent = card; corner(accentBar,2)
@@ -1032,8 +1069,9 @@ function Tab:CreateSection(name)
 
     local card = Instance.new("Frame")
     card.Size = UDim2.new(1,0,0,0); card.AutomaticSize = Enum.AutomaticSize.Y
-    card.BackgroundColor3 = Theme.Card; card.Parent = column
+    card.BackgroundColor3 = Theme.Card; card.BackgroundTransparency = 0.1; card.Parent = column
     corner(card,10); stroke(card, Theme.Stroke, 1, 0.5); pad(card, 10)
+    addShadow(card, 0.6)
 
     -- daftarin section ke registry search (biar bisa dicari pakai nama section)
     local lib = self._lib
@@ -1267,7 +1305,7 @@ function Setup:CreateTab(opts)
     -- halaman (page) dengan 2 kolom
     local page = Instance.new("ScrollingFrame")
     page.Size = UDim2.new(1,-16,1,0); page.Position = UDim2.fromOffset(8,0); page.BackgroundTransparency = 1
-    page.BorderSizePixel = 0; page.ScrollBarThickness = 0
+    page.BorderSizePixel = 0; page.ScrollBarThickness = 3; page.ScrollBarImageColor3 = Theme.SubText
     page.AutomaticCanvasSize = Enum.AutomaticSize.Y; page.CanvasSize = UDim2.new()
     page.Visible = (index == 1); page.Parent = self._pageHolder
 
@@ -1300,8 +1338,12 @@ function Setup:CreateTab(opts)
     tab._highlight = highlight
 
     btn.MouseButton1Click:Connect(function()
+        if page.Visible then return end
         for _, t in ipairs(self._tabs) do t._page.Visible = false; t._highlight(false) end
         page.Visible = true; highlight(true)
+        -- Smooth Slide Transition
+        page.Position = UDim2.fromOffset(8, 20)
+        tween(page, SMOOTH, { Position = UDim2.fromOffset(8, 0) })
     end)
 
     table.insert(self._tabs, tab)
@@ -1335,14 +1377,19 @@ local function inBounds(gui, pos)
     return pos.X >= ap.X and pos.X <= ap.X + as.X and pos.Y >= ap.Y and pos.Y <= ap.Y + as.Y
 end
 
--- drag pakai deteksi posisi global (anti-ketutup cover frame)
+-- drag pakai deteksi posisi global + Spring/Lerp smooth movement
 local function makeDraggable(handle, target, ignore)
-    local dragging, startInput, startPos
+    local dragging, dragInput, dragStart, startPos
     UserInputService.InputBegan:Connect(function(i, gpe)
         if gpe then return end
         if (i.UserInputType == Enum.UserInputType.MouseButton1 or i.UserInputType == Enum.UserInputType.Touch)
            and inBounds(handle, i.Position) and not (ignore and inBounds(ignore, i.Position)) then
-            dragging = true; startInput = i.Position; startPos = target.Position
+            dragging = true; dragStart = i.Position; startPos = target.Position
+        end
+    end)
+    UserInputService.InputChanged:Connect(function(i)
+        if i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch then
+            dragInput = i
         end
     end)
     UserInputService.InputEnded:Connect(function(i)
@@ -1350,11 +1397,14 @@ local function makeDraggable(handle, target, ignore)
             dragging = false
         end
     end)
-    UserInputService.InputChanged:Connect(function(i)
-        if dragging and (i.UserInputType == Enum.UserInputType.MouseMovement or i.UserInputType == Enum.UserInputType.Touch) then
-            local d = i.Position - startInput
-            target.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset+d.X, startPos.Y.Scale, startPos.Y.Offset+d.Y)
+    
+    local targetPos = target.Position
+    RunService.RenderStepped:Connect(function(dt)
+        if dragging and dragInput then
+            local delta = dragInput.Position - dragStart
+            targetPos = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
         end
+        target.Position = target.Position:Lerp(targetPos, math.clamp(dt * 15, 0, 1))
     end)
 end
 
@@ -1406,7 +1456,7 @@ function Library:Setup(config)
         -- logo
         local kLogo = Instance.new("ImageLabel")
         kLogo.Size = UDim2.fromOffset(56,56); kLogo.BackgroundColor3 = Theme.Element
-        kLogo.Image = config.Logo or LOGO_PLACEHOLDER
+        kLogo.Image = getLogoImage(config.Logo)
         kLogo.ScaleType = Enum.ScaleType.Fit; kLogo.LayoutOrder = 1; kLogo.Parent = card
         corner(kLogo,12); stroke(kLogo, Theme.Accent, 1.4, 0.1)
 
@@ -1508,8 +1558,9 @@ function Library:Setup(config)
     local W, H = 580, 430
     local window = Instance.new("Frame")
     window.Size = UDim2.fromOffset(W, H); window.Position = UDim2.new(0.5,-W/2,0.5,-H/2)
-    window.BackgroundColor3 = Theme.Window; window.ClipsDescendants = true; window.Parent = screen
+    window.BackgroundColor3 = Theme.Window; window.BackgroundTransparency = 0.15; window.ClipsDescendants = false; window.Parent = screen
     corner(window, 14); stroke(window, Theme.Accent, 1.4, 0.25)
+    addShadow(window, 0.3)
 
     -- ===== SIDEBAR =====
     local sidebar = Instance.new("Frame")
@@ -1519,7 +1570,7 @@ function Library:Setup(config)
     -- LOGO (template, tinggal ganti config.Logo)
     local logo = Instance.new("ImageLabel")
     logo.Size = UDim2.fromOffset(36,36); logo.Position = UDim2.new(0.5,-18,0,8); logo.BackgroundColor3 = Theme.Element
-    logo.Image = config.Logo or LOGO_PLACEHOLDER; logo.Parent = sidebar
+    logo.Image = getLogoImage(config.Logo); logo.Parent = sidebar
     corner(logo, 10); stroke(logo, Theme.Accent, 1.4, 0.1)
 
     -- ===== MAIN CONTAINER =====
@@ -1622,7 +1673,7 @@ function Library:Setup(config)
         toggleBtn.AnchorPoint = Vector2.new(0,1)
         toggleBtn.Position = UDim2.new(0.5, -W/2, 0.5, -H/2 - 8)
     end
-    toggleBtn.BackgroundColor3 = Theme.Accent; toggleBtn.Image = config.Logo or ""; toggleBtn.Parent = screen
+    toggleBtn.BackgroundColor3 = Theme.Accent; toggleBtn.Image = getLogoImage(config.Logo); toggleBtn.Parent = screen
     corner(toggleBtn, 12); gradient(toggleBtn, Theme.AccentGlow, Theme.AccentDark, 90); stroke(toggleBtn, Theme.AccentGlow, 1.2, 0.2)
 
     local isOpen = true
