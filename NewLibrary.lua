@@ -36,11 +36,11 @@ local HttpService      = game:GetService("HttpService")
 -- ============================================================
 --  PLACEHOLDER (ganti dari Setup juga bisa)
 -- ============================================================
-local LOGO_PLACEHOLDER = "rbxthumb://type=Asset&id=101654945061026&w=150&h=150"  -- logo default (Open Cloud upload)
+local LOGO_PLACEHOLDER = "https://raw.githubusercontent.com/Kunsyy/hub-library/main/icons/logo.png"  -- logo default kunsy
 local CONFIG_FOLDER    = "VS_Config"        -- folder simpan config di workspace
 
 local function getLogoImage(url)
-    if not url or url == "" then return LOGO_PLACEHOLDER end
+    if not url or url == "" then url = LOGO_PLACEHOLDER end
     if string.match(url, "^http") then
         local req = (syn and syn.request) or (http and http.request) or http_request or request
         if req and writefile and getcustomasset then
