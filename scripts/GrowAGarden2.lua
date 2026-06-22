@@ -16,7 +16,7 @@ local client = Players.LocalPlayer
 
 print("Loading Library...")
 
-local Library = loadstring(game:HttpGet("https://versusairlines.top/scripts/NewLibrary.lua"))()
+
 
 local Setup = Library:Setup({
     Location = CoreGui,

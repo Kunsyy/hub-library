@@ -636,7 +636,32 @@ function Section:CreateButton(opts)
         if opts.callback then pcall(opts.callback) end
     end)
     self:_premiumLock(row, opts)
-    return row
+    local drop = {}
+    function drop:updateList(newList)
+        for _, child in ipairs(list:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+        opts.options = newList or {}
+        for _, opt in ipairs(opts.options) do
+            local item = Instance.new("TextButton")
+            item.Size = UDim2.new(1,0,0,26); item.BackgroundColor3 = ChiyoTheme.Window
+            item.Font = Enum.Font.Gotham; item.TextSize = 13; item.TextColor3 = ChiyoTheme.SubText
+            item.Text = tostring(opt); item.Parent = list; applyCorner(item,6)
+            item.MouseButton1Click:Connect(function()
+                lib.Flags[opts.flag] = opt
+                label.Text = (opts.name or opts.flag)..": "..tostring(opt)
+                if opts.callback then pcall(opts.callback, opt) end
+                lib:_autoSave()
+            end)
+        end
+        if open then
+            local h = #(opts.options)*30+4
+            tween(row, FAST, { Size = UDim2.new(1,0,0,36+h) })
+            tween(list, FAST, { Size = UDim2.new(1,0,0,h) })
+        end
+    end
+    drop.Instance = row
+    return drop
 end
 
 function Section:CreateSlider(opts)
@@ -746,7 +771,32 @@ function Section:CreateDropdown(opts)
         arrow.Text = open and "^" or "v"
     end)
     self:_premiumLock(row, opts)
-    return row
+    local drop = {}
+    function drop:updateList(newList)
+        for _, child in ipairs(list:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+        opts.options = newList or {}
+        for _, opt in ipairs(opts.options) do
+            local item = Instance.new("TextButton")
+            item.Size = UDim2.new(1,0,0,26); item.BackgroundColor3 = ChiyoTheme.Window
+            item.Font = Enum.Font.Gotham; item.TextSize = 13; item.TextColor3 = ChiyoTheme.SubText
+            item.Text = tostring(opt); item.Parent = list; applyCorner(item,6)
+            item.MouseButton1Click:Connect(function()
+                lib.Flags[opts.flag] = opt
+                label.Text = (opts.name or opts.flag)..": "..tostring(opt)
+                if opts.callback then pcall(opts.callback, opt) end
+                lib:_autoSave()
+            end)
+        end
+        if open then
+            local h = #(opts.options)*30+4
+            tween(row, FAST, { Size = UDim2.new(1,0,0,36+h) })
+            tween(list, FAST, { Size = UDim2.new(1,0,0,h) })
+        end
+    end
+    drop.Instance = row
+    return drop
 end
 
 function Section:CreateTextbox(opts)
@@ -923,7 +973,32 @@ function Section:CreateMultiDropdown(opts)
         arrow.Text = open and "^" or "v"
     end)
     self:_premiumLock(row, opts)
-    return row
+    local drop = {}
+    function drop:updateList(newList)
+        for _, child in ipairs(list:GetChildren()) do
+            if child:IsA("TextButton") then child:Destroy() end
+        end
+        opts.options = newList or {}
+        for _, opt in ipairs(opts.options) do
+            local item = Instance.new("TextButton")
+            item.Size = UDim2.new(1,0,0,26); item.BackgroundColor3 = ChiyoTheme.Window
+            item.Font = Enum.Font.Gotham; item.TextSize = 13; item.TextColor3 = ChiyoTheme.SubText
+            item.Text = tostring(opt); item.Parent = list; applyCorner(item,6)
+            item.MouseButton1Click:Connect(function()
+                lib.Flags[opts.flag] = opt
+                label.Text = (opts.name or opts.flag)..": "..tostring(opt)
+                if opts.callback then pcall(opts.callback, opt) end
+                lib:_autoSave()
+            end)
+        end
+        if open then
+            local h = #(opts.options)*30+4
+            tween(row, FAST, { Size = UDim2.new(1,0,0,36+h) })
+            tween(list, FAST, { Size = UDim2.new(1,0,0,h) })
+        end
+    end
+    drop.Instance = row
+    return drop
 end
 
 -- ===== LABEL (teks statis 1 baris) =====
