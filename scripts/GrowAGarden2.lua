@@ -1,4 +1,4 @@
-﻿local request = (syn and syn.request) or (http and http.request) or http_request
+local request = (syn and syn.request) or (http and http.request) or http_request
 
 local TweenService = game:GetService("TweenService")
 local HttpService = game:GetService("HttpService")
