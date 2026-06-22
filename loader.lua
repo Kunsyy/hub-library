@@ -79,9 +79,10 @@ if not matched then
     warn("  [Hub] This game is NOT supported yet.")
     warn("  [Hub] PlaceId : " .. tostring(pid))
     warn("  [Hub] GameId  : " .. tostring(gid))
-    warn("  [Hub] Join Discord for updates & requests.")
+    warn("  [Hub] Loading Universal features instead.")
     warn("=================================================")
-    return
+    matched = { script = "Universal" }
+    matchedName = "Universal"
 end
 
 -- ============================================================
