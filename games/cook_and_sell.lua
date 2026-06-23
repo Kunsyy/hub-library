@@ -141,9 +141,10 @@ local Window = Library:CreateWindow({
 getgenv().KunsyCookInstance = Library
 Window:SetSidebarWidth(48)
 
--- ── Mobile toggle button ──────────────────────────────────────────────────────
+-- ── Toggle button (all devices) ───────────────────────────────────────────────
 
-if IS_MOBILE then
+do
+    local UIS       = game:GetService("UserInputService")
     local toggleGui = Instance.new("ScreenGui")
     toggleGui.Name           = "KunsyToggle"
     toggleGui.ResetOnSpawn   = false
@@ -171,18 +172,17 @@ if IS_MOBILE then
     stroke.Thickness = 2.5
     stroke.Parent    = btn
 
-    local dragging, touchStart, posStart = false, nil, nil
+    local dragging, dragStart, posStart = false, nil, nil
 
-    btn.InputBegan:Connect(function(input)
-        if input.UserInputType ~= Enum.UserInputType.Touch then return end
-        dragging   = false
-        touchStart = input.Position
-        posStart   = btn.Position
-    end)
+    local function beginDrag(pos)
+        dragging  = false
+        dragStart = pos
+        posStart  = btn.Position
+    end
 
-    btn.InputChanged:Connect(function(input)
-        if input.UserInputType ~= Enum.UserInputType.Touch or not touchStart then return end
-        local delta = input.Position - touchStart
+    local function moveDrag(pos)
+        if not dragStart then return end
+        local delta = pos - dragStart
         if delta.Magnitude > 8 then dragging = true end
         if dragging then
             local vp = workspace.CurrentCamera.ViewportSize
@@ -191,11 +191,10 @@ if IS_MOBILE then
                 math.clamp(posStart.Y.Offset + delta.Y, 28, vp.Y - 28)
             )
         end
-    end)
+    end
 
-    btn.InputEnded:Connect(function(input)
-        if input.UserInputType ~= Enum.UserInputType.Touch then return end
-        if not dragging then
+    local function endDrag(wasClick)
+        if wasClick and not dragging then
             local shown = Library.ScreenGui.Enabled
             Library.ScreenGui.Enabled = not shown
             Library.Toggled           = shown
@@ -204,8 +203,31 @@ if IS_MOBILE then
                 and Color3.fromRGB(70, 35, 100)
                 or  Color3.fromRGB(168, 85, 247)
         end
-        dragging   = false
-        touchStart = nil
+        dragging  = false
+        dragStart = nil
+    end
+
+    btn.InputBegan:Connect(function(input)
+        local t = input.UserInputType
+        if t == Enum.UserInputType.Touch then
+            beginDrag(input.Position)
+        elseif t == Enum.UserInputType.MouseButton1 then
+            beginDrag(Vector2.new(input.Position.X, input.Position.Y))
+        end
+    end)
+
+    btn.InputChanged:Connect(function(input)
+        local t = input.UserInputType
+        if t == Enum.UserInputType.Touch or t == Enum.UserInputType.MouseMovement then
+            moveDrag(Vector2.new(input.Position.X, input.Position.Y))
+        end
+    end)
+
+    btn.InputEnded:Connect(function(input)
+        local t = input.UserInputType
+        if t == Enum.UserInputType.Touch or t == Enum.UserInputType.MouseButton1 then
+            endDrag(true)
+        end
     end)
 end
 
