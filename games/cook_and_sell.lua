@@ -328,6 +328,7 @@ local function doAutoCashier()
     if not RM then return end
     local myPlot = getMyPlot()
     if not myPlot then return end
+    if myPlot:GetAttribute("HasHiredCashier") then return end
 
     local checkout  = myPlot:FindFirstChild("Checkout")
     local customers = myPlot:FindFirstChild("Customers")
@@ -335,7 +336,6 @@ local function doAutoCashier()
 
     local queue1 = checkout:FindFirstChild("Queue") and checkout.Queue:FindFirstChild("1")
 
-    -- Cleanup stale references
     for k in pairs(processingCustomers) do
         if not k or not k.Parent then processingCustomers[k] = nil end
     end
@@ -343,34 +343,40 @@ local function doAutoCashier()
     for _, c in ipairs(customers:GetChildren()) do
         if processingCustomers[c] then continue end
         local replica = RM.NPCReplicas and RM.NPCReplicas[c]
-        if replica and replica.Data and replica.Data.QueuePosition == 1 then
-            local hrp = c:FindFirstChild("HumanoidRootPart")
-            if not queue1 or (hrp and (hrp.Position - queue1.Position).Magnitude <= 5) then
-                processingCustomers[c] = true
-                task.spawn(function()
-                    fireRemote("InteractCustomer", c)
-                    local bagsFolder = checkout:FindFirstChild("Bags")
-                    if bagsFolder then
-                        local waited = 0
-                        while #bagsFolder:GetChildren() == 0 and waited < 15 do
-                            task.wait(0.2) ; waited += 1
-                        end
-                        local bagNames = {}
-                        for _, bag in ipairs(bagsFolder:GetChildren()) do
-                            if bag:IsA("BasePart") then
-                                table.insert(bagNames, bag.Name)
-                                fireRemote("ManualCheckoutProgress", "Set", c, bagNames)
-                                task.wait(0.2)
-                            end
-                        end
+        if not (replica and replica.Data and replica.Data.QueuePosition == 1) then continue end
+
+        local hrp = c:FindFirstChild("HumanoidRootPart")
+        if queue1 and hrp and (hrp.Position - queue1.Position).Magnitude > 5 then continue end
+
+        processingCustomers[c] = true
+        task.spawn(function()
+            local bagNames = {}
+            -- Open checkout (same as tapping the customer)
+            fireRemote("ManualCheckoutProgress", "Set", c, bagNames)
+            task.wait(0.3)
+
+            -- Scan each bag
+            local bagsFolder = checkout:FindFirstChild("Bags")
+            if bagsFolder then
+                local waited = 0
+                while #bagsFolder:GetChildren() == 0 and waited < 20 do
+                    task.wait(0.2) ; waited += 1
+                end
+                for _, bag in ipairs(bagsFolder:GetChildren()) do
+                    if bag:IsA("BasePart") then
+                        table.insert(bagNames, bag.Name)
+                        fireRemote("ManualCheckoutProgress", "Set", c, bagNames)
+                        task.wait(0.15)
                     end
-                    fireRemote("ManualCheckoutProgress", "Clear", c)
-                    task.wait(1)
-                    processingCustomers[c] = nil
-                end)
-                break
+                end
             end
-        end
+
+            -- Complete checkout
+            fireRemote("ManualCheckoutProgress", "Clear", c)
+            task.wait(1.5)
+            processingCustomers[c] = nil
+        end)
+        break
     end
 end
 
@@ -503,6 +509,21 @@ local cookList, cookMeta = buildCookList()
 
 local cookInProgress = false
 
+local function findCookPrompt(serverPot)
+    for _, obj in ipairs(workspace:GetDescendants()) do
+        if obj.Name == "CookingPotClientModel" and obj:IsA("Model") then
+            local ref = obj:FindFirstChild("ServerPotRef")
+            if ref and ref.Value == serverPot then
+                local base = obj:FindFirstChild("Base")
+                if base then
+                    local pa = base:FindFirstChild("PromptAttachment")
+                    if pa then return pa:FindFirstChild("CookingPotCookPrompt") end
+                end
+            end
+        end
+    end
+end
+
 local function doStartCook()
     if cookInProgress then return end
     local selectedCook = Library.Options.CookRecipe.Value
@@ -516,71 +537,74 @@ local function doStartCook()
 
     local pot = myPlot:FindFirstChild("CookingPotServerModel")
     if not pot then return end
-    local potRemote = pot:FindFirstChild("Remote")
-    if not potRemote then return end
 
+    -- Claim if ready
     if pot:GetAttribute("ReadyToClaim") then
-        pcall(function() potRemote:FireServer("ClaimDessert") end)
+        local prompt = findCookPrompt(pot)
+        if prompt then pcall(fireproximityprompt, prompt) end
         return
     end
 
-    -- Place any held tools to counter first
-    local char = Players.LocalPlayer.Character
-    local counters = myPlot:FindFirstChild("Counters")
-    if char and counters then
-        for _, t in ipairs(char:GetChildren()) do
-            if t:IsA("Tool") then
-                for _, counter in ipairs(counters:GetChildren()) do
-                    for i = 1, 12 do
-                        if counter:FindFirstChild(tostring(i)) then
-                            fireRemote("PlaceDownItem", t, counter, i)
+    local ingCount    = pot:GetAttribute("IngredientCount") or 0
+    local ingRequired = pot:GetAttribute("IngredientsRequired") or 6
+    if pot:GetAttribute("Cooking") or ingCount >= ingRequired then return end
+
+    -- Start the recipe
+    local StartCooking = getRemote("StartCooking")
+    if not StartCooking then return end
+    local ok, success = pcall(function() return StartCooking:InvokeServer(id) end)
+    if not ok or not success then return end
+
+    cookInProgress = true
+    task.spawn(function()
+        local CookingAction = getRemote("CookingAction")
+        if not CookingAction then cookInProgress = false return end
+
+        local localUserId = Players.LocalPlayer.UserId
+        task.wait(0.6)
+
+        local iters = 0
+        while Library.Options.AutoCookRecipe.Value and iters < 60 do
+            local curPot = myPlot:FindFirstChild("CookingPotServerModel")
+            if not curPot then break end
+
+            local cur = curPot:GetAttribute("IngredientCount") or 0
+            local req = curPot:GetAttribute("IngredientsRequired") or 6
+            if cur >= req or curPot:GetAttribute("Cooking") then break end
+
+            -- Find available ingredient
+            local ingFolder = myPlot:FindFirstChild("SpawnedIngredients")
+            if ingFolder then
+                for _, ing in ipairs(ingFolder:GetChildren()) do
+                    if ing:IsA("BasePart") and ing:GetAttribute("CookingOwnerUserId") == localUserId then
+                        local state = ing:GetAttribute("CookingState")
+                        if state == "OnTable" or state == "Held" then
+                            local slot = ing:GetAttribute("CookingSlotIndex")
+                            if slot then
+                                pcall(function() CookingAction:InvokeServer("PickUp", slot) end)
+                                task.wait(0.35)
+                                pcall(function() CookingAction:InvokeServer("AddToPot", nil) end)
+                                task.wait(0.5)
+                                break
+                            end
                         end
                     end
                 end
             end
-        end
-    end
 
-    if pot:GetAttribute("Cooking") or (pot:GetAttribute("IngredientCount") or 0) > 0 then return end
-
-    local RM = getReplicaManager()
-    if not RM then return end
-    local replica  = RM.PlayerDataReplica
-    local uncooked = replica and replica.Data and replica.Data.UncookedProducts or {}
-    if not (uncooked[id] and uncooked[id] > 0) then return end
-
-    cookInProgress = true
-    task.spawn(function()
-        local StartCooking = getRemote("StartCooking")
-        if not StartCooking then cookInProgress = false return end
-
-        local startOk, success, ingredients = pcall(function()
-            return StartCooking:InvokeServer(id)
-        end)
-        if not startOk or not success or type(ingredients) ~= "table" then
-            cookInProgress = false ; return
+            task.wait(0.3)
+            iters += 1
         end
 
-        task.wait(1)
-        if not Library.Options.AutoCookRecipe.Value then cookInProgress = false return end
-
-        for _, ingData in ipairs(ingredients) do
-            if not Library.Options.AutoCookRecipe.Value then break end
-            if type(ingData) == "table" and ingData.ingredientName then
-                pcall(function() potRemote:FireServer("AddIngredient", ingData.ingredientName) end)
-                task.wait(0.8)
-            end
-        end
-
-        if not Library.Options.AutoCookRecipe.Value then cookInProgress = false return end
-
+        -- Wait for cooking + claim
         local elapsed = 0
         while Library.Options.AutoCookRecipe.Value and elapsed < 300 do
             local curPot = myPlot:FindFirstChild("CookingPotServerModel")
             if not curPot then break end
             if curPot:GetAttribute("ReadyToClaim") then
-                local r = curPot:FindFirstChild("Remote")
-                if r then pcall(function() r:FireServer("ClaimDessert") end) end
+                task.wait(0.3)
+                local prompt = findCookPrompt(curPot)
+                if prompt then pcall(fireproximityprompt, prompt) end
                 break
             end
             if not curPot:GetAttribute("Cooking") and (curPot:GetAttribute("IngredientCount") or 0) == 0 then
