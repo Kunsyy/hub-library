@@ -405,6 +405,7 @@ end
 -- Auto Cashier
 
 local processingCustomers = {}
+local customerCooldown    = {}  -- prevents re-processing same instance after checkout
 
 local function doAutoCashier()
     local RM = getReplicaManager()
@@ -417,61 +418,69 @@ local function doAutoCashier()
     local customers = myPlot:FindFirstChild("Customers")
     if not checkout or not customers then return end
 
+    -- collect cash each tick (merged from Auto Collect)
+    local cashReg = checkout:FindFirstChild("CashRegister")
+    if cashReg then
+        local pa = cashReg:FindFirstChild("PromptAttachment")
+        local prompt = pa and pa:FindFirstChild("CashPrompt")
+        if prompt then pcall(fireproximityprompt, prompt) end
+    end
+
     local queue1 = checkout:FindFirstChild("Queue") and checkout.Queue:FindFirstChild("1")
 
+    -- cleanup stale locks and cooldowns for customers that already left
+    local now = os.clock()
     for k in pairs(processingCustomers) do
-        if not k or not k.Parent then processingCustomers[k] = nil end
+        if not k.Parent then processingCustomers[k] = nil end
+    end
+    for k, t in pairs(customerCooldown) do
+        if not k.Parent or (now - t) > 8 then customerCooldown[k] = nil end
     end
 
     for _, c in ipairs(customers:GetChildren()) do
         if processingCustomers[c] then continue end
+        if customerCooldown[c]    then continue end
+
         local replica = RM.NPCReplicas and RM.NPCReplicas[c]
         if not (replica and replica.Data and replica.Data.QueuePosition == 1) then continue end
 
         local hrp = c:FindFirstChild("HumanoidRootPart")
         if queue1 and hrp and (hrp.Position - queue1.Position).Magnitude > 5 then continue end
 
-        processingCustomers[c] = true
-        task.spawn(function()
-            local bagNames = {}
-                    fireRemote("ManualCheckoutProgress", "Set", c, bagNames)
-            task.wait(0.3)
+        local cart      = replica.Data.Cart
+        local itemCount = type(cart) == "table" and #cart or 0
 
-                    local bagsFolder = checkout:FindFirstChild("Bags")
-            if bagsFolder then
-                local waited = 0
-                while #bagsFolder:GetChildren() == 0 and waited < 20 do
-                    task.wait(0.2) ; waited += 1
-                end
-                for _, bag in ipairs(bagsFolder:GetChildren()) do
-                    if bag:IsA("BasePart") then
-                        table.insert(bagNames, bag.Name)
-                        fireRemote("ManualCheckoutProgress", "Set", c, bagNames)
-                        task.wait(0.15)
-                    end
-                end
+        processingCustomers[c] = true
+        customerCooldown[c]    = os.clock()
+        local capturedReplica  = replica
+        task.spawn(function()
+            fireRemote("ManualCheckoutProgress", "Set", c, {})
+            task.wait(0.15)
+
+            local bagList = {}
+            for i = 1, itemCount do
+                table.insert(bagList, 1, tostring(i))
+                fireRemote("ManualCheckoutProgress", "Set", c, bagList)
+                task.wait(0.12)
             end
 
-                    fireRemote("ManualCheckoutProgress", "Clear", c)
-            task.wait(1.5)
+            task.wait(0.2)
+            fireRemote("ManualCheckoutProgress", "Clear", c)
+
+            -- wait for customer to physically leave (QueuePosition change or depart), max 6s
+            local elapsed = 0
+            while elapsed < 6 do
+                if not c.Parent then break end
+                local d = capturedReplica.Data
+                if not d or d.QueuePosition ~= 1 then break end
+                task.wait(0.25)
+                elapsed += 0.25
+            end
             processingCustomers[c] = nil
+            -- cooldown stays until customer leaves workspace or 8s passes (handled in cleanup above)
         end)
         break
     end
-end
-
--- Auto Collect Cash
-
-local function doAutoCollect()
-    local myPlot = getMyPlot()
-    if not myPlot then return end
-    local checkout = myPlot:FindFirstChild("Checkout")
-    if not checkout then return end
-    local cashReg = checkout:FindFirstChild("CashRegister")
-    if not cashReg then return end
-    local pa = cashReg:FindFirstChild("PromptAttachment")
-    local prompt = pa and pa:FindFirstChild("CashPrompt")
-    if prompt then pcall(fireproximityprompt, prompt) end
 end
 
 -- Auto Upgrade
@@ -483,7 +492,7 @@ local function doAutoUpgrade()
     fireRemote("ExpandShop")
 end
 
--- Auto Manage (claim from pot + place to counters)
+-- Auto Manage (claim from kitchen counter + cooking pot)
 
 local function doAutoManage()
     local myPlot = getMyPlot()
@@ -506,18 +515,30 @@ local function doAutoManage()
             end
         end
     end
+end
 
+-- Auto Place (place tools from inventory onto display counter slots)
+
+local function doAutoPlace()
     local char = Players.LocalPlayer.Character
+    if not char then return end
+
+    local myPlot = getMyPlot()
+    if not myPlot then return end
+
     local counters = myPlot:FindFirstChild("Counters")
-    if char and counters then
-        for _, t in ipairs(char:GetChildren()) do
-            if t:IsA("Tool") then
-                for _, counter in ipairs(counters:GetChildren()) do
-                    for i = 1, 12 do
-                        if counter:FindFirstChild(tostring(i)) then
-                            fireRemote("PlaceDownItem", t, counter, i)
-                        end
-                    end
+    if not counters then return end
+
+    for _, tool in ipairs(char:GetChildren()) do
+        if not tool:IsA("Tool") then continue end
+        for _, counter in ipairs(counters:GetChildren()) do
+            if not counter:IsA("Model") then continue end
+            for i = 1, 12 do
+                local slot = counter:FindFirstChild(tostring(i))
+                if not slot then break end
+                -- slot is empty when it has no nested Model (no displayed product)
+                if not slot:FindFirstChildOfClass("Model") then
+                    fireRemote("PlaceDownItem", tool, counter, i)
                 end
             end
         end
@@ -589,16 +610,69 @@ end
 local itemList, itemMeta = buildItemList()
 local cookList, cookMeta = buildCookList()
 
+-- reverse map: productId -> display name (must be before refreshCookList)
+local idToName = {}
+for name, id in pairs(cookMeta) do idToName[id] = name end
+
+local function refreshCookList()
+    local newList, newMeta = buildCookList()
+    if #newList == #cookList then return end
+    cookList = newList
+    cookMeta = newMeta
+    for name, id in pairs(cookMeta) do idToName[id] = name end
+    local drop = Library.Options.CookRecipe
+    if drop then
+        drop:SetValues(#cookList > 0 and cookList or { "No recipes unlocked" })
+    end
+end
+
 -- Auto Cook Recipe
 
 local cookInProgress  = false
 local autoCookEnabled = false
+local cookCycleIndex  = 1
+
+local function getSelectedRecipes()
+    local val = Library.Options.CookRecipe and Library.Options.CookRecipe.Value
+    if type(val) ~= "table" then
+        return type(val) == "string" and {val} or {}
+    end
+    local list = {}
+    for k, v in pairs(val) do
+        if type(k) == "string" and v == true then
+            table.insert(list, k)
+        elseif type(k) == "number" and type(v) == "string" then
+            table.insert(list, v)
+        end
+    end
+    table.sort(list)
+    return list
+end
 
 local function doStartCook()
     if cookInProgress then return end
-    local selectedCook = Library.Options.CookRecipe.Value
-    local id = cookMeta[selectedCook]
-    if not id then return end
+
+    local selectedList = getSelectedRecipes()
+    if #selectedList == 0 then return end
+
+    -- get uncooked stock
+    local RM      = getReplicaManager()
+    local rep     = RM and RM.PlayerDataReplica
+    local uncooked = rep and rep.Data.UncookedProducts or {}
+
+    -- cycle through selected recipes to find next one with stock
+    local id, foundIdx
+    for attempt = 1, #selectedList do
+        local idx  = ((cookCycleIndex - 1 + attempt - 1) % #selectedList) + 1
+        local name = selectedList[idx]
+        local rid  = cookMeta[name]
+        if rid and (uncooked[rid] or 0) > 0 then
+            id       = rid
+            foundIdx = idx
+            break
+        end
+    end
+    if not id then return end  -- no stock for any selected recipe
 
     local myPlot = getMyPlot()
     if not myPlot then return end
@@ -624,10 +698,13 @@ local function doStartCook()
     if not ok or not success or type(ingredientData) ~= "table" then return end
 
     cookInProgress = true
+    -- advance cycle to next recipe for the next cook session
+    cookCycleIndex = (foundIdx % #selectedList) + 1
+
     task.spawn(function()
         task.wait(0.5)
 
-        local curPot = myPlot:FindFirstChild("CookingPotServerModel")
+        local curPot    = myPlot:FindFirstChild("CookingPotServerModel")
         local curRemote = curPot and curPot:FindFirstChild("Remote")
         if not curRemote then cookInProgress = false return end
 
@@ -660,14 +737,14 @@ end
 -- UI — FARM TAB
 
 local FarmGroup = Tabs.Farm:AddLeftGroupbox("Cashier", "users")
-FarmGroup:AddToggle("AutoCashier", { Text = "Auto Cashier", Default = false,
-    Callback = function(val) trackInterval("CashierLoop", val, 0.5, doAutoCashier) end })
-FarmGroup:AddToggle("AutoCollectCash", { Text = "Auto Collect Cash", Default = false,
-    Callback = function(val) trackInterval("CollectLoop", val, 1, doAutoCollect) end })
+FarmGroup:AddToggle("AutoCashier", { Text = "Auto Cashier (+ Collect Cash)", Default = false,
+    Callback = function(val) trackInterval("CashierLoop", val, 0.2, doAutoCashier) end })
 
 local ManageGroup = Tabs.Farm:AddRightGroupbox("Kitchen", "cooking-pot")
-ManageGroup:AddToggle("AutoManage", { Text = "Auto Manage (Claim + Place)", Default = false,
+ManageGroup:AddToggle("AutoManage", { Text = "Auto Manage (Claim)", Default = false,
     Callback = function(val) trackInterval("ManageLoop", val, 0.5, doAutoManage) end })
+ManageGroup:AddToggle("AutoPlace", { Text = "Auto Place", Default = false,
+    Callback = function(val) trackInterval("PlaceLoop", val, 1, doAutoPlace) end })
 ManageGroup:AddToggle("AutoUpgrade", { Text = "Auto Upgrade", Default = false,
     Callback = function(val) trackInterval("UpgradeLoop", val, 1.5, doAutoUpgrade) end })
 
@@ -702,18 +779,77 @@ end)
 
 -- UI — COOK TAB
 
-local CookGroup = Tabs.Cook:AddLeftGroupbox("Recipe", "cooking-pot")
+local CookGroup  = Tabs.Cook:AddLeftGroupbox("Recipe", "cooking-pot")
+local StockGroup = Tabs.Cook:AddRightGroupbox("Pantry", "package")
+
 CookGroup:AddDropdown("CookRecipe", {
-    Text   = "Select Recipe",
-    Values = #cookList > 0 and cookList or { "No recipes unlocked" },
+    Text    = "Select Recipe",
+    Values  = #cookList > 0 and cookList or { "No recipes unlocked" },
     Default = 1,
+    Multi   = true,
 })
 CookGroup:AddToggle("AutoCookRecipe", { Text = "Auto Cook", Default = false,
     Callback = function(val)
         autoCookEnabled = val
         cookInProgress  = false
+        cookCycleIndex  = 1
         trackInterval("AutoCookLoop", val, 2, doStartCook)
     end })
+
+-- Pantry stock panel (right side, wrapping labels)
+local stockLabelElem = StockGroup:AddLabel("Loading...", true)
+
+local function updateStockLabel()
+    if not stockLabelElem then return end
+    local RM  = getReplicaManager()
+    local rep = RM and RM.PlayerDataReplica
+    if not rep then stockLabelElem:SetText("--") ; return end
+
+    local uncooked  = rep.Data.UncookedProducts or {}
+    local selList   = getSelectedRecipes()
+    local selIdSet  = {}
+    for _, name in ipairs(selList) do
+        local rid = cookMeta[name]
+        if rid then selIdSet[rid] = true end
+    end
+
+    -- only show recipes with stock > 0, selected ones first
+    local entries = {}
+    for rid, cnt in pairs(uncooked) do
+        if cnt > 0 then
+            table.insert(entries, { name = idToName[rid] or rid, cnt = cnt, isSel = selIdSet[rid] == true })
+        end
+    end
+    table.sort(entries, function(a, b)
+        if a.isSel ~= b.isSel then return a.isSel end
+        return a.name < b.name
+    end)
+
+    if #entries == 0 then
+        stockLabelElem:SetText("(kosong)")
+        return
+    end
+
+    local lines = {}
+    for _, e in ipairs(entries) do
+        local prefix = e.isSel and "> " or "  "
+        local warn   = e.cnt <= 3 and " [!]" or ""
+        table.insert(lines, prefix .. e.name .. ": " .. e.cnt .. "x" .. warn)
+    end
+    stockLabelElem:SetText(table.concat(lines, "\n"))
+end
+
+-- update on recipe switch + reset cycle
+Library.Options.CookRecipe:OnChanged(function()
+    cookCycleIndex = 1
+    updateStockLabel()
+end)
+
+-- realtime update loop (always on)
+trackInterval("StockUpdateLoop", true, 0.5, updateStockLabel)
+
+-- refresh recipe list when new recipes get unlocked
+trackInterval("CookListRefresh", true, 5, refreshCookList)
 
 -- UI — MISC TAB
 
@@ -758,6 +894,7 @@ MenuGroup:AddButton("Unload", function() Library:Unload() end)
 ThemeManager:SetLibrary(Library)
 SaveManager:SetLibrary(Library)
 SaveManager:IgnoreThemeSettings()
+SaveManager:SetIgnoreIndexes({ "AutoPlace" })
 SaveManager:SetFolder("HubLibraryV2/CookAndSell")
 ThemeManager:SetFolder("HubLibraryV2")
 ThemeManager:ApplyToTabSplit(Tabs.Settings)
