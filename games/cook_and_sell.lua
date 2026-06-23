@@ -4,6 +4,14 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService        = game:GetService("RunService")
 local Players           = game:GetService("Players")
+local VirtualUser       = game:GetService("VirtualUser")
+
+-- Anti AFK
+Players.LocalPlayer.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+end)
 
 local CACHE_DIR = "HubLibraryV2/cache/"
 local OBSIDIAN  = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main/"
