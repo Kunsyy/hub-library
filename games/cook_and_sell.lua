@@ -776,18 +776,19 @@ MenuGroup:AddButton("Open Keybind Menu", function()
 end)
 MenuGroup:AddToggle("AutoExecute",    { Text = "Auto Execute",    Default = false })
 MenuGroup:AddToggle("AutoReconnect",  { Text = "Auto Reconnect",  Default = false })
-MenuGroup:AddToggle("CustomCursor",   { Text = "Custom Cursor",   Default = not IS_MOBILE }):OnChanged(function(val)
-    Library.ShowCustomCursor = val
-end)
+MenuGroup:AddToggle("CustomCursor", { Text = "Custom Cursor", Default = not IS_MOBILE,
+    Callback = function(val) Library.ShowCustomCursor = val end })
 MenuGroup:AddToggle("ShowWatermark",  { Text = "Show Watermark",  Default = true })
 MenuGroup:AddDropdown("NotifySide", {
     Text = "Notification Side", Default = 1,
     Values = { "Right", "Left" }, Multi = false,
-}):OnChanged(function(val) Library.NotifySide = val end)
+})
+Library.Options.NotifySide:OnChanged(function(val) Library.NotifySide = val end)
 MenuGroup:AddDropdown("DPIScale", {
     Text = "DPI Scale", Default = 2,
     Values = { "75%", "100%", "125%", "150%" }, Multi = false,
-}):OnChanged(function(val)
+})
+Library.Options.DPIScale:OnChanged(function(val)
     local map = { ["75%"] = 75, ["100%"] = 100, ["125%"] = 125, ["150%"] = 150 }
     Library:SetDPIScale(map[val] or 100)
 end)
