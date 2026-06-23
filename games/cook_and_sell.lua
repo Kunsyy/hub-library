@@ -141,10 +141,12 @@ local Window = Library:CreateWindow({
     Size             = UDim2.fromOffset(700, 520),
     Center           = true,
     AutoShow         = true,
-    ShowCustomCursor = false,
-    NotifySide       = "Right",
+    ShowCustomCursor   = false,
+    NotifySide         = "Right",
+    ShowMobileButtons  = false,
 })
 getgenv().KunsyCookInstance = Library
+Window:SetFooter("ayank auliaa yg manis cantik dan kesayangan nya aku, wkwkwk")
 Window:SetSidebarWidth(48)
 game:GetService("UserInputService").MouseIconEnabled = true
 
