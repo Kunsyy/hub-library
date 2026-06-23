@@ -196,6 +196,7 @@ do
             Library.ScreenGui.Enabled = not shown
             Library.Toggled           = shown
             btn.ImageTransparency     = shown and 0.5 or 0
+            task.defer(function() game:GetService("UserInputService").MouseIconEnabled = true end)
         end
         dragging  = false
         dragStart = nil
