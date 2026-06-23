@@ -141,6 +141,74 @@ local Window = Library:CreateWindow({
 getgenv().KunsyCookInstance = Library
 Window:SetSidebarWidth(48)
 
+-- ── Mobile toggle button ──────────────────────────────────────────────────────
+
+if IS_MOBILE then
+    local toggleGui = Instance.new("ScreenGui")
+    toggleGui.Name           = "KunsyToggle"
+    toggleGui.ResetOnSpawn   = false
+    toggleGui.DisplayOrder   = 999
+    toggleGui.IgnoreGuiInset = true
+    pcall(function() toggleGui.Parent = game:GetService("CoreGui") end)
+
+    local btn = Instance.new("ImageButton")
+    btn.AnchorPoint       = Vector2.new(0.5, 0.5)
+    btn.BackgroundColor3  = Color3.fromRGB(12, 12, 18)
+    btn.BorderSizePixel   = 0
+    btn.Position          = UDim2.fromOffset(50, 200)
+    btn.Size              = UDim2.fromOffset(56, 56)
+    btn.Image             = "rbxassetid://139962551928576"
+    btn.ImageColor3       = Color3.fromRGB(255, 255, 255)
+    btn.ZIndex            = 10
+    btn.Parent            = toggleGui
+
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent       = btn
+
+    local stroke = Instance.new("UIStroke")
+    stroke.Color     = Color3.fromRGB(168, 85, 247)
+    stroke.Thickness = 2.5
+    stroke.Parent    = btn
+
+    local dragging, touchStart, posStart = false, nil, nil
+
+    btn.InputBegan:Connect(function(input)
+        if input.UserInputType ~= Enum.UserInputType.Touch then return end
+        dragging   = false
+        touchStart = input.Position
+        posStart   = btn.Position
+    end)
+
+    btn.InputChanged:Connect(function(input)
+        if input.UserInputType ~= Enum.UserInputType.Touch or not touchStart then return end
+        local delta = input.Position - touchStart
+        if delta.Magnitude > 8 then dragging = true end
+        if dragging then
+            local vp = workspace.CurrentCamera.ViewportSize
+            btn.Position = UDim2.fromOffset(
+                math.clamp(posStart.X.Offset + delta.X, 28, vp.X - 28),
+                math.clamp(posStart.Y.Offset + delta.Y, 28, vp.Y - 28)
+            )
+        end
+    end)
+
+    btn.InputEnded:Connect(function(input)
+        if input.UserInputType ~= Enum.UserInputType.Touch then return end
+        if not dragging then
+            local shown = Library.ScreenGui.Enabled
+            Library.ScreenGui.Enabled = not shown
+            Library.Toggled           = shown
+            btn.ImageTransparency     = shown and 0.5 or 0
+            stroke.Color              = shown
+                and Color3.fromRGB(70, 35, 100)
+                or  Color3.fromRGB(168, 85, 247)
+        end
+        dragging   = false
+        touchStart = nil
+    end)
+end
+
 -- ── Tabs ──────────────────────────────────────────────────────────────────────
 
 local Tabs = {
