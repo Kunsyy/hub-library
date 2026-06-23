@@ -135,7 +135,7 @@ local Window = Library:CreateWindow({
     Size             = UDim2.fromOffset(700, 520),
     Center           = true,
     AutoShow         = true,
-    ShowCustomCursor = not IS_MOBILE,
+    ShowCustomCursor = false,
     NotifySide       = "Right",
 })
 getgenv().KunsyCookInstance = Library
@@ -781,7 +781,7 @@ MenuGroup:AddButton("Open Keybind Menu", function()
 end)
 MenuGroup:AddToggle("AutoExecute",    { Text = "Auto Execute",    Default = false })
 MenuGroup:AddToggle("AutoReconnect",  { Text = "Auto Reconnect",  Default = false })
-MenuGroup:AddToggle("CustomCursor", { Text = "Custom Cursor", Default = not IS_MOBILE,
+MenuGroup:AddToggle("CustomCursor", { Text = "Custom Cursor", Default = false,
     Callback = function(val) Library.ShowCustomCursor = val end })
 MenuGroup:AddToggle("ShowWatermark",  { Text = "Show Watermark",  Default = true })
 MenuGroup:AddDropdown("NotifySide", {
