@@ -360,15 +360,11 @@ local function clearTag(tag)
     end
 end
 
-local function trackInterval(tag, optionKey, delay, callback)
+local function trackInterval(tag, enabled, delay, callback)
     clearTag(tag)
+    if not enabled then return end
     local last = 0
     Connections[tag] = RunService.Heartbeat:Connect(function()
-        local cur = Library.Options and Library.Options[optionKey]
-        if not cur or not cur.Value then
-            clearTag(tag)
-            return
-        end
         local now = os.clock()
         if now - last >= delay then
             last = now
@@ -698,19 +694,19 @@ end
 -- ═════════════════════════════════════════════════════════════════════════════
 
 local FarmGroup = Tabs.Farm:AddLeftGroupbox("Cashier", "users")
-FarmGroup:AddToggle("AutoCashier", { Text = "Auto Cashier", Default = false }):OnChanged(function()
-    trackInterval("CashierLoop", "AutoCashier", 0.5, doAutoCashier)
+FarmGroup:AddToggle("AutoCashier", { Text = "Auto Cashier", Default = false }):OnChanged(function(val)
+    trackInterval("CashierLoop", val, 0.5, doAutoCashier)
 end)
-FarmGroup:AddToggle("AutoCollectCash", { Text = "Auto Collect Cash", Default = false }):OnChanged(function()
-    trackInterval("CollectLoop", "AutoCollectCash", 1, doAutoCollect)
+FarmGroup:AddToggle("AutoCollectCash", { Text = "Auto Collect Cash", Default = false }):OnChanged(function(val)
+    trackInterval("CollectLoop", val, 1, doAutoCollect)
 end)
 
 local ManageGroup = Tabs.Farm:AddRightGroupbox("Kitchen", "cooking-pot")
-ManageGroup:AddToggle("AutoManage", { Text = "Auto Manage (Claim + Place)", Default = false }):OnChanged(function()
-    trackInterval("ManageLoop", "AutoManage", 0.5, doAutoManage)
+ManageGroup:AddToggle("AutoManage", { Text = "Auto Manage (Claim + Place)", Default = false }):OnChanged(function(val)
+    trackInterval("ManageLoop", val, 0.5, doAutoManage)
 end)
-ManageGroup:AddToggle("AutoUpgrade", { Text = "Auto Upgrade", Default = false }):OnChanged(function()
-    trackInterval("UpgradeLoop", "AutoUpgrade", 1.5, doAutoUpgrade)
+ManageGroup:AddToggle("AutoUpgrade", { Text = "Auto Upgrade", Default = false }):OnChanged(function(val)
+    trackInterval("UpgradeLoop", val, 1.5, doAutoUpgrade)
 end)
 
 -- ═════════════════════════════════════════════════════════════════════════════
@@ -754,9 +750,9 @@ CookGroup:AddDropdown("CookRecipe", {
     Values = #cookList > 0 and cookList or { "No recipes unlocked" },
     Default = 1,
 })
-CookGroup:AddToggle("AutoCookRecipe", { Text = "Auto Cook", Default = false }):OnChanged(function()
+CookGroup:AddToggle("AutoCookRecipe", { Text = "Auto Cook", Default = false }):OnChanged(function(val)
     cookInProgress = false
-    trackInterval("AutoCookLoop", "AutoCookRecipe", 2, doStartCook)
+    trackInterval("AutoCookLoop", val, 2, doStartCook)
 end)
 
 -- ═════════════════════════════════════════════════════════════════════════════
@@ -764,11 +760,11 @@ end)
 -- ═════════════════════════════════════════════════════════════════════════════
 
 local MiscGroup = Tabs.Misc:AddLeftGroupbox("Daily & Loan", "calendar")
-MiscGroup:AddToggle("AutoReward", { Text = "Auto Daily Reward", Default = false }):OnChanged(function()
-    trackInterval("RewardLoop", "AutoReward", 5, doAutoRewards)
+MiscGroup:AddToggle("AutoReward", { Text = "Auto Daily Reward", Default = false }):OnChanged(function(val)
+    trackInterval("RewardLoop", val, 5, doAutoRewards)
 end)
-MiscGroup:AddToggle("AutoLoan", { Text = "Auto Pay Loan", Default = false }):OnChanged(function()
-    trackInterval("LoanLoop", "AutoLoan", 5, doAutoLoan)
+MiscGroup:AddToggle("AutoLoan", { Text = "Auto Pay Loan", Default = false }):OnChanged(function(val)
+    trackInterval("LoanLoop", val, 5, doAutoLoan)
 end)
 
 -- ═════════════════════════════════════════════════════════════════════════════
