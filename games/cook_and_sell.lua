@@ -362,8 +362,6 @@ end
 
 local function trackInterval(tag, optionKey, delay, callback)
     clearTag(tag)
-    local opt = Library.Options and Library.Options[optionKey]
-    if not opt or not opt.Value then return end
     local last = 0
     Connections[tag] = RunService.Heartbeat:Connect(function()
         local cur = Library.Options and Library.Options[optionKey]
