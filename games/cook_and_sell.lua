@@ -1,7 +1,5 @@
--- =============================================
 -- Cook and Sell — Auto Farm
 -- Part of Kunsy Hub Library V2
--- =============================================
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService        = game:GetService("RunService")
@@ -13,7 +11,7 @@ local OBSIDIAN  = "https://raw.githubusercontent.com/deividcomsono/Obsidian/main
 local IS_MOBILE = (game:GetService("UserInputService").TouchEnabled
     and not game:GetService("UserInputService").KeyboardEnabled)
 
--- ── Cache helpers ─────────────────────────────────────────────────────────────
+-- Cache helpers
 
 local function safeRead(path)
     local ok, data = pcall(readfile, path)
@@ -36,13 +34,13 @@ local function fetchCached(filename)
     return data
 end
 
--- ── Load Obsidian ─────────────────────────────────────────────────────────────
+-- Load Obsidian
 
 local Library      = loadstring(fetchCached("Library.lua"))()
 local ThemeManager = loadstring(fetchCached("addons/ThemeManager.lua"))()
 local SaveManager  = loadstring(fetchCached("addons/SaveManager.lua"))()
 
--- ── ThemeManager split (Colors left / Themes right) ──────────────────────────
+-- ThemeManager split (Colors left / Themes right)
 
 function ThemeManager:ApplyToTabSplit(tab)
     assert(self.Library, "Must set ThemeManager.Library first!")
@@ -109,7 +107,7 @@ function ThemeManager:ApplyToTabSplit(tab)
     L.Options.FontFace:OnChanged(function(v) L:SetFont(Enum.Font[v]) ; L:UpdateColorsUsingRegistry() end)
 end
 
--- ── Thin outlines ─────────────────────────────────────────────────────────────
+-- Thin outlines
 
 local _origAddOutline = Library.AddOutline
 Library.AddOutline = function(self, Frame)
@@ -119,14 +117,14 @@ Library.AddOutline = function(self, Frame)
     return OutlineStroke, ShadowStroke
 end
 
--- ── Guard: unload previous instance ──────────────────────────────────────────
+-- Guard: unload previous instance
 
 if getgenv().KunsyCookLoaded then
     pcall(function() getgenv().KunsyCookInstance:Unload() end)
 end
 getgenv().KunsyCookLoaded   = true
 
--- ── Window ────────────────────────────────────────────────────────────────────
+-- Window
 
 local Window = Library:CreateWindow({
     Title            = "Cook and Sell",
@@ -142,7 +140,7 @@ getgenv().KunsyCookInstance = Library
 Window:SetSidebarWidth(48)
 game:GetService("UserInputService").MouseIconEnabled = true
 
--- ── Toggle button (all devices) ───────────────────────────────────────────────
+-- Toggle button (all devices)
 
 do
     local UIS = game:GetService("UserInputService")
@@ -226,7 +224,7 @@ do
     end)
 end
 
--- ── Tabs ──────────────────────────────────────────────────────────────────────
+-- Tabs
 
 local Tabs = {
     Farm     = Window:AddTab("", "bot"),
@@ -237,7 +235,7 @@ local Tabs = {
 }
 Tabs.Farm:Show()
 
--- ── Auto-collapse all groupboxes ──────────────────────────────────────────────
+-- Auto-collapse all groupboxes
 
 local function AddCollapseToGroupbox(Group)
     local S = Library.Scheme
@@ -324,11 +322,9 @@ end
 
 for _, tab in pairs(Tabs) do WrapTabCollapse(tab) end
 
--- ═════════════════════════════════════════════════════════════════════════════
 -- GAME LOGIC
--- ═════════════════════════════════════════════════════════════════════════════
 
--- ── Remote helper ─────────────────────────────────────────────────────────────
+-- Remote helper
 
 local RemoteCache = {}
 
@@ -356,7 +352,7 @@ local function fireRemote(name, ...)
     end)
 end
 
--- ── Connection manager (replaces Library:TrackConnection) ────────────────────
+-- Connection manager (replaces Library:TrackConnection)
 
 local Connections = {}
 
@@ -381,7 +377,7 @@ local function trackInterval(tag, enabled, delay, callback)
     end)
 end
 
--- ── Shared module loaders ─────────────────────────────────────────────────────
+-- Shared module loaders
 
 local function getFoodShop()
     local ok, m = pcall(require, ReplicatedStorage.Riese.Shared.FoodShop)
@@ -398,7 +394,7 @@ local function getMyPlot()
     return FS and FS.GetPlayerPlot(Players.LocalPlayer) or nil
 end
 
--- ── Auto Cashier ──────────────────────────────────────────────────────────────
+-- Auto Cashier
 
 local processingCustomers = {}
 
@@ -430,12 +426,10 @@ local function doAutoCashier()
         processingCustomers[c] = true
         task.spawn(function()
             local bagNames = {}
-            -- Open checkout (same as tapping the customer)
-            fireRemote("ManualCheckoutProgress", "Set", c, bagNames)
+                    fireRemote("ManualCheckoutProgress", "Set", c, bagNames)
             task.wait(0.3)
 
-            -- Scan each bag
-            local bagsFolder = checkout:FindFirstChild("Bags")
+                    local bagsFolder = checkout:FindFirstChild("Bags")
             if bagsFolder then
                 local waited = 0
                 while #bagsFolder:GetChildren() == 0 and waited < 20 do
@@ -450,8 +444,7 @@ local function doAutoCashier()
                 end
             end
 
-            -- Complete checkout
-            fireRemote("ManualCheckoutProgress", "Clear", c)
+                    fireRemote("ManualCheckoutProgress", "Clear", c)
             task.wait(1.5)
             processingCustomers[c] = nil
         end)
@@ -459,19 +452,21 @@ local function doAutoCashier()
     end
 end
 
--- ── Auto Collect Cash ─────────────────────────────────────────────────────────
+-- Auto Collect Cash
 
 local function doAutoCollect()
     local myPlot = getMyPlot()
     if not myPlot then return end
-    for _, obj in ipairs(myPlot:GetDescendants()) do
-        if obj:IsA("ProximityPrompt") and obj.Name == "CashPrompt" then
-            pcall(fireproximityprompt, obj)
-        end
-    end
+    local checkout = myPlot:FindFirstChild("Checkout")
+    if not checkout then return end
+    local cashReg = checkout:FindFirstChild("CashRegister")
+    if not cashReg then return end
+    local pa = cashReg:FindFirstChild("PromptAttachment")
+    local prompt = pa and pa:FindFirstChild("CashPrompt")
+    if prompt then pcall(fireproximityprompt, prompt) end
 end
 
--- ── Auto Upgrade ──────────────────────────────────────────────────────────────
+-- Auto Upgrade
 
 local function doAutoUpgrade()
     fireRemote("BuyPotUpgrade")
@@ -480,28 +475,30 @@ local function doAutoUpgrade()
     fireRemote("ExpandShop")
 end
 
--- ── Auto Manage (claim from pot + place to counters) ─────────────────────────
+-- Auto Manage (claim from pot + place to counters)
 
 local function doAutoManage()
     local myPlot = getMyPlot()
     if not myPlot then return end
 
-    -- Claim ready items from pots
-    for _, obj in ipairs(myPlot:GetDescendants()) do
-        if obj:IsA("ProximityPrompt") and obj.Name == "ClaimItem" then
-            pcall(fireproximityprompt, obj)
-        end
-    end
-    local potFolder = workspace:FindFirstChild("CookingPotClientModel")
-    if potFolder then
-        for _, obj in ipairs(potFolder:GetDescendants()) do
+    local kitchenCounter = myPlot:FindFirstChild("KitchenCounter")
+    if kitchenCounter then
+        for _, obj in ipairs(kitchenCounter:GetDescendants()) do
             if obj:IsA("ProximityPrompt") and obj.Name == "ClaimItem" then
                 pcall(fireproximityprompt, obj)
             end
         end
     end
+    for _, obj in ipairs(workspace:GetChildren()) do
+        if obj.Name == "CookingPotClientModel" and obj:IsA("Model") then
+            for _, child in ipairs(obj:GetDescendants()) do
+                if child:IsA("ProximityPrompt") and child.Name == "ClaimItem" then
+                    pcall(fireproximityprompt, child)
+                end
+            end
+        end
+    end
 
-    -- Place held tools to counters
     local char = Players.LocalPlayer.Character
     local counters = myPlot:FindFirstChild("Counters")
     if char and counters then
@@ -519,20 +516,20 @@ local function doAutoManage()
     end
 end
 
--- ── Auto Daily Reward ─────────────────────────────────────────────────────────
+-- Auto Daily Reward
 
 local function doAutoRewards()
     fireRemote("GetDailyLoginReward")
     fireRemote("OpenDailyLoginReward")
 end
 
--- ── Auto Pay Loan ─────────────────────────────────────────────────────────────
+-- Auto Pay Loan
 
 local function doAutoLoan()
     fireRemote("PayLoan")
 end
 
--- ── Buy Shop logic ────────────────────────────────────────────────────────────
+-- Buy Shop logic
 
 local function buildItemList()
     local okPD, ProductData = pcall(require, ReplicatedStorage.Riese.Shared.ProductData)
@@ -584,13 +581,13 @@ end
 local itemList, itemMeta = buildItemList()
 local cookList, cookMeta = buildCookList()
 
--- ── Auto Cook Recipe ─────────────────────────────────────────────────────────
+-- Auto Cook Recipe
 
 local cookInProgress  = false
 local autoCookEnabled = false
 
 local function findCookPrompt(serverPot)
-    for _, obj in ipairs(workspace:GetDescendants()) do
+    for _, obj in ipairs(workspace:GetChildren()) do
         if obj.Name == "CookingPotClientModel" and obj:IsA("Model") then
             local ref = obj:FindFirstChild("ServerPotRef")
             if ref and ref.Value == serverPot then
@@ -618,7 +615,6 @@ local function doStartCook()
     local pot = myPlot:FindFirstChild("CookingPotServerModel")
     if not pot then return end
 
-    -- Claim if ready
     if pot:GetAttribute("ReadyToClaim") then
         local prompt = findCookPrompt(pot)
         if prompt then pcall(fireproximityprompt, prompt) end
@@ -629,7 +625,6 @@ local function doStartCook()
     local ingRequired = pot:GetAttribute("IngredientsRequired") or 6
     if pot:GetAttribute("Cooking") or ingCount >= ingRequired then return end
 
-    -- Start the recipe
     local StartCooking = getRemote("StartCooking")
     if not StartCooking then return end
     local ok, success = pcall(function() return StartCooking:InvokeServer(id) end)
@@ -652,8 +647,7 @@ local function doStartCook()
             local req = curPot:GetAttribute("IngredientsRequired") or 6
             if cur >= req or curPot:GetAttribute("Cooking") then break end
 
-            -- Find available ingredient
-            local ingFolder = myPlot:FindFirstChild("SpawnedIngredients")
+                    local ingFolder = myPlot:FindFirstChild("SpawnedIngredients")
             if ingFolder then
                 for _, ing in ipairs(ingFolder:GetChildren()) do
                     if ing:IsA("BasePart") and ing:GetAttribute("CookingOwnerUserId") == localUserId then
@@ -676,8 +670,7 @@ local function doStartCook()
             iters += 1
         end
 
-        -- Wait for cooking + claim
-        local elapsed = 0
+            local elapsed = 0
         while autoCookEnabled and elapsed < 300 do
             local curPot = myPlot:FindFirstChild("CookingPotServerModel")
             if not curPot then break end
@@ -697,9 +690,7 @@ local function doStartCook()
     end)
 end
 
--- ═════════════════════════════════════════════════════════════════════════════
 -- UI — FARM TAB
--- ═════════════════════════════════════════════════════════════════════════════
 
 local FarmGroup = Tabs.Farm:AddLeftGroupbox("Cashier", "users")
 FarmGroup:AddToggle("AutoCashier", { Text = "Auto Cashier", Default = false,
@@ -713,9 +704,7 @@ ManageGroup:AddToggle("AutoManage", { Text = "Auto Manage (Claim + Place)", Defa
 ManageGroup:AddToggle("AutoUpgrade", { Text = "Auto Upgrade", Default = false,
     Callback = function(val) trackInterval("UpgradeLoop", val, 1.5, doAutoUpgrade) end })
 
--- ═════════════════════════════════════════════════════════════════════════════
 -- UI — SHOP TAB
--- ═════════════════════════════════════════════════════════════════════════════
 
 local BuyGroup = Tabs.Shop:AddLeftGroupbox("Buy Shop", "shopping-cart")
 BuyGroup:AddDropdown("BuyShopItem", {
@@ -744,9 +733,7 @@ BuyGroup:AddButton("Order 5", function()
     end)
 end)
 
--- ═════════════════════════════════════════════════════════════════════════════
 -- UI — COOK TAB
--- ═════════════════════════════════════════════════════════════════════════════
 
 local CookGroup = Tabs.Cook:AddLeftGroupbox("Recipe", "cooking-pot")
 CookGroup:AddDropdown("CookRecipe", {
@@ -761,9 +748,7 @@ CookGroup:AddToggle("AutoCookRecipe", { Text = "Auto Cook", Default = false,
         trackInterval("AutoCookLoop", val, 2, doStartCook)
     end })
 
--- ═════════════════════════════════════════════════════════════════════════════
 -- UI — MISC TAB
--- ═════════════════════════════════════════════════════════════════════════════
 
 local MiscGroup = Tabs.Misc:AddLeftGroupbox("Daily & Loan", "calendar")
 MiscGroup:AddToggle("AutoReward", { Text = "Auto Daily Reward", Default = false,
@@ -771,9 +756,7 @@ MiscGroup:AddToggle("AutoReward", { Text = "Auto Daily Reward", Default = false,
 MiscGroup:AddToggle("AutoLoan", { Text = "Auto Pay Loan", Default = false,
     Callback = function(val) trackInterval("LoanLoop", val, 5, doAutoLoan) end })
 
--- ═════════════════════════════════════════════════════════════════════════════
 -- UI — SETTINGS TAB
--- ═════════════════════════════════════════════════════════════════════════════
 
 local MenuGroup = Tabs.Settings:AddLeftGroupbox("Menu", "menu")
 MenuGroup:AddButton("Open Keybind Menu", function()
