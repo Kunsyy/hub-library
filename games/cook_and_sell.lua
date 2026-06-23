@@ -153,24 +153,15 @@ do
     pcall(function() toggleGui.Parent = game:GetService("CoreGui") end)
 
     local btn = Instance.new("ImageButton")
-    btn.AnchorPoint       = Vector2.new(0.5, 0.5)
-    btn.BackgroundColor3  = Color3.fromRGB(12, 12, 18)
-    btn.BorderSizePixel   = 0
-    btn.Position          = UDim2.fromOffset(50, 200)
-    btn.Size              = UDim2.fromOffset(56, 56)
-    btn.Image             = "rbxassetid://139962551928576"
-    btn.ImageColor3       = Color3.fromRGB(255, 255, 255)
-    btn.ZIndex            = 10
-    btn.Parent            = toggleGui
-
-    local corner = Instance.new("UICorner")
-    corner.CornerRadius = UDim.new(1, 0)
-    corner.Parent       = btn
-
-    local stroke = Instance.new("UIStroke")
-    stroke.Color     = Color3.fromRGB(168, 85, 247)
-    stroke.Thickness = 2.5
-    stroke.Parent    = btn
+    btn.AnchorPoint            = Vector2.new(0.5, 0.5)
+    btn.BackgroundTransparency = 1
+    btn.BorderSizePixel        = 0
+    btn.Position               = UDim2.fromOffset(50, 200)
+    btn.Size                   = UDim2.fromOffset(56, 56)
+    btn.Image                  = "rbxassetid://139962551928576"
+    btn.ImageColor3            = Color3.fromRGB(255, 255, 255)
+    btn.ZIndex                 = 10
+    btn.Parent                 = toggleGui
 
     local dragging, dragStart, posStart = false, nil, nil
 
@@ -199,9 +190,6 @@ do
             Library.ScreenGui.Enabled = not shown
             Library.Toggled           = shown
             btn.ImageTransparency     = shown and 0.5 or 0
-            stroke.Color              = shown
-                and Color3.fromRGB(70, 35, 100)
-                or  Color3.fromRGB(168, 85, 247)
         end
         dragging  = false
         dragStart = nil
