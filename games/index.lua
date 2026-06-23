@@ -7,6 +7,9 @@
 return {
 
     -- ── Live ──────────────────────────────────────────────────────
+    -- Cook and Sell (fill in correct PlaceId from the Roblox URL)
+    -- [PLACE_ID_HERE] = "games/cook_and_sell.lua",
+
     -- Grow a Garden
     -- [126884695634979] = "games/grow_a_garden.lua",
 
