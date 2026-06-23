@@ -144,7 +144,12 @@ Window:SetSidebarWidth(48)
 -- ── Toggle button (all devices) ───────────────────────────────────────────────
 
 do
-    local UIS       = game:GetService("UserInputService")
+    local UIS = game:GetService("UserInputService")
+    pcall(function()
+        for _, v in ipairs(game:GetService("CoreGui"):GetChildren()) do
+            if v.Name == "KunsyToggle" then v:Destroy() end
+        end
+    end)
     local toggleGui = Instance.new("ScreenGui")
     toggleGui.Name           = "KunsyToggle"
     toggleGui.ResetOnSpawn   = false
