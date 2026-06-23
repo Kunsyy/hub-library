@@ -140,6 +140,7 @@ local Window = Library:CreateWindow({
 })
 getgenv().KunsyCookInstance = Library
 Window:SetSidebarWidth(48)
+game:GetService("UserInputService").MouseIconEnabled = true
 
 -- ── Toggle button (all devices) ───────────────────────────────────────────────
 
