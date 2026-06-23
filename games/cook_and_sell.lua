@@ -579,7 +579,8 @@ local cookList, cookMeta = buildCookList()
 
 -- ── Auto Cook Recipe ─────────────────────────────────────────────────────────
 
-local cookInProgress = false
+local cookInProgress  = false
+local autoCookEnabled = false
 
 local function findCookPrompt(serverPot)
     for _, obj in ipairs(workspace:GetDescendants()) do
@@ -636,7 +637,7 @@ local function doStartCook()
         task.wait(0.6)
 
         local iters = 0
-        while Library.Options.AutoCookRecipe.Value and iters < 60 do
+        while autoCookEnabled and iters < 60 do
             local curPot = myPlot:FindFirstChild("CookingPotServerModel")
             if not curPot then break end
 
@@ -670,7 +671,7 @@ local function doStartCook()
 
         -- Wait for cooking + claim
         local elapsed = 0
-        while Library.Options.AutoCookRecipe.Value and elapsed < 300 do
+        while autoCookEnabled and elapsed < 300 do
             local curPot = myPlot:FindFirstChild("CookingPotServerModel")
             if not curPot then break end
             if curPot:GetAttribute("ReadyToClaim") then
@@ -694,20 +695,16 @@ end
 -- ═════════════════════════════════════════════════════════════════════════════
 
 local FarmGroup = Tabs.Farm:AddLeftGroupbox("Cashier", "users")
-FarmGroup:AddToggle("AutoCashier", { Text = "Auto Cashier", Default = false }):OnChanged(function(val)
-    trackInterval("CashierLoop", val, 0.5, doAutoCashier)
-end)
-FarmGroup:AddToggle("AutoCollectCash", { Text = "Auto Collect Cash", Default = false }):OnChanged(function(val)
-    trackInterval("CollectLoop", val, 1, doAutoCollect)
-end)
+FarmGroup:AddToggle("AutoCashier", { Text = "Auto Cashier", Default = false,
+    Callback = function(val) trackInterval("CashierLoop", val, 0.5, doAutoCashier) end })
+FarmGroup:AddToggle("AutoCollectCash", { Text = "Auto Collect Cash", Default = false,
+    Callback = function(val) trackInterval("CollectLoop", val, 1, doAutoCollect) end })
 
 local ManageGroup = Tabs.Farm:AddRightGroupbox("Kitchen", "cooking-pot")
-ManageGroup:AddToggle("AutoManage", { Text = "Auto Manage (Claim + Place)", Default = false }):OnChanged(function(val)
-    trackInterval("ManageLoop", val, 0.5, doAutoManage)
-end)
-ManageGroup:AddToggle("AutoUpgrade", { Text = "Auto Upgrade", Default = false }):OnChanged(function(val)
-    trackInterval("UpgradeLoop", val, 1.5, doAutoUpgrade)
-end)
+ManageGroup:AddToggle("AutoManage", { Text = "Auto Manage (Claim + Place)", Default = false,
+    Callback = function(val) trackInterval("ManageLoop", val, 0.5, doAutoManage) end })
+ManageGroup:AddToggle("AutoUpgrade", { Text = "Auto Upgrade", Default = false,
+    Callback = function(val) trackInterval("UpgradeLoop", val, 1.5, doAutoUpgrade) end })
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- UI — SHOP TAB
@@ -750,22 +747,22 @@ CookGroup:AddDropdown("CookRecipe", {
     Values = #cookList > 0 and cookList or { "No recipes unlocked" },
     Default = 1,
 })
-CookGroup:AddToggle("AutoCookRecipe", { Text = "Auto Cook", Default = false }):OnChanged(function(val)
-    cookInProgress = false
-    trackInterval("AutoCookLoop", val, 2, doStartCook)
-end)
+CookGroup:AddToggle("AutoCookRecipe", { Text = "Auto Cook", Default = false,
+    Callback = function(val)
+        autoCookEnabled = val
+        cookInProgress  = false
+        trackInterval("AutoCookLoop", val, 2, doStartCook)
+    end })
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- UI — MISC TAB
 -- ═════════════════════════════════════════════════════════════════════════════
 
 local MiscGroup = Tabs.Misc:AddLeftGroupbox("Daily & Loan", "calendar")
-MiscGroup:AddToggle("AutoReward", { Text = "Auto Daily Reward", Default = false }):OnChanged(function(val)
-    trackInterval("RewardLoop", val, 5, doAutoRewards)
-end)
-MiscGroup:AddToggle("AutoLoan", { Text = "Auto Pay Loan", Default = false }):OnChanged(function(val)
-    trackInterval("LoanLoop", val, 5, doAutoLoan)
-end)
+MiscGroup:AddToggle("AutoReward", { Text = "Auto Daily Reward", Default = false,
+    Callback = function(val) trackInterval("RewardLoop", val, 5, doAutoRewards) end })
+MiscGroup:AddToggle("AutoLoan", { Text = "Auto Pay Loan", Default = false,
+    Callback = function(val) trackInterval("LoanLoop", val, 5, doAutoLoan) end })
 
 -- ═════════════════════════════════════════════════════════════════════════════
 -- UI — SETTINGS TAB
