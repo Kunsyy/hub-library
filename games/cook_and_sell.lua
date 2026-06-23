@@ -146,7 +146,7 @@ local Window = Library:CreateWindow({
     ShowMobileButtons  = false,
 })
 getgenv().KunsyCookInstance = Library
-Window:SetFooter("ayank auliaa yg manis cantik dan kesayangan nya aku, wkwkwk")
+Window:SetFooter("ayank auliaa yg manis cantik dan kesayangan nya aku")
 Window:SetSidebarWidth(48)
 game:GetService("UserInputService").MouseIconEnabled = true
 
