@@ -310,6 +310,24 @@ SaveManager:LoadAutoloadConfig()
 
 ---
 
+## Anti-AFK
+
+Every game script includes this automatically — no toggle needed.
+
+```lua
+local VirtualUser = game:GetService("VirtualUser")
+
+Players.LocalPlayer.Idled:Connect(function()
+    VirtualUser:Button2Down(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+    task.wait(1)
+    VirtualUser:Button2Up(Vector2.new(0, 0), workspace.CurrentCamera.CFrame)
+end)
+```
+
+When Roblox detects the player is idle, `Idled` fires → `VirtualUser` simulates a quick right-click → Roblox resets the idle timer and cancels the kick.
+
+---
+
 ## Adding a New Game
 
 1. Get the PlaceId from the Roblox URL (`?placeId=XXXXX`)
