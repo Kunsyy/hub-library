@@ -1,105 +1,177 @@
-# Hub Library V2 — Roblox UI Library (Obsidian)
+# Kunsy Hub Library
 
-Built on top of [Obsidian](https://github.com/deividcomsono/Obsidian) by deividcomsono.
-
-Load with one line:
-
-```lua
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/master/ObsidianLibrary.lua"))()
-```
+Roblox multi-game cheat loader built on [Obsidian V2](https://github.com/deividcomsono/Obsidian).
 
 ---
 
-## Quick Start
+## How to Use
+
+Execute `loader.lua` in your executor:
 
 ```lua
--- Load the hub (handles Obsidian + ThemeManager + SaveManager internally)
-loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/master/ObsidianLibrary.lua"))()
+loadstring(game:HttpGet("https://raw.githubusercontent.com/Kunsyy/hub-library/main/loader.lua"))()
 ```
 
-The script auto-creates the window, sidebar tabs, and Settings tab. To add your own tabs/groupboxes, edit `ObsidianLibrary.lua`.
+The loader will:
+1. Ask for a key (or load saved key)
+2. Validate it
+3. Detect the current game via PlaceId
+4. Download and run the matching game script
 
 ---
 
-## Adding Tabs & Groupboxes
+## Supported Games
+
+| Game | Status |
+|------|--------|
+| Cook and Sell | ✅ Live |
+| Grow a Garden | 🔜 Soon |
+| Blox Fruits | 🔜 Soon |
+
+---
+
+## Adding a New Game
+
+**1. Create the game script**
+
+Copy `games/cook_and_sell.lua` as a base. The structure every game script must follow:
 
 ```lua
+-- Load Obsidian + addons
+local Library      = loadstring(fetchCached("Library.lua"))()
+local ThemeManager = loadstring(fetchCached("addons/ThemeManager.lua"))()
+local SaveManager  = loadstring(fetchCached("addons/SaveManager.lua"))()
+
+-- Create window
 local Window = Library:CreateWindow({
-    Title  = "Hub Library V2",
-    Icon   = "rbxassetid://139962551928576",
-    Size   = UDim2.fromOffset(700, 520),
-    Center = true,
+    Title            = "Game Name",
+    Icon             = "rbxassetid://139962551928576",
+    Size             = UDim2.fromOffset(700, 520),
+    Center           = true,
+    AutoShow         = true,
+    ShowCustomCursor = false,  -- MUST be false or real cursor disappears on PC
 })
+-- Restore cursor (Obsidian hides it on init)
+game:GetService("UserInputService").MouseIconEnabled = true
 
--- Icon-only sidebar tabs (no text)
+-- Add tabs
 local Tabs = {
-    Main     = Window:AddTab("", "cpu"),
+    Main     = Window:AddTab("", "bot"),
     Settings = Window:AddTab("", "settings"),
 }
-
--- Groupboxes
-local Group = Tabs.Main:AddLeftGroupbox("Base", "layout-grid")
-Group:AddToggle("AutoFarm", { Text = "Auto Farm", Default = false })
-Group:AddSlider("Speed", { Text = "Speed", Min = 0, Max = 100, Default = 16 })
-Group:AddDropdown("Mode", { Text = "Mode", Values = { "Safe", "Fast" }, Default = 1 })
-Group:AddButton("Teleport", function() end)
 ```
 
----
-
-## Groupbox with Sub-Tabs
+**2. Register in `games/index.lua`**
 
 ```lua
--- Returns an array of proxy objects, one per sub-tab
-local Proxies = GroupWithTabs(Tabs.Main, "left", "Base", "layout-grid", {
-    "layout-grid",  -- tab 1 icon
-    "eye",          -- tab 2 icon
-    "zap",          -- tab 3 icon
-})
-
-local Tab1 = Proxies[1]
-Tab1:AddToggle("AutoSell", { Text = "Auto Sell", Default = true })
-
-local Tab2 = Proxies[2]
-Tab2:AddToggle("ESP", { Text = "ESP", Default = false })
+return {
+    [106131416903029] = "games/cook_and_sell.lua",  -- Cook and Sell
+    [YOUR_PLACE_ID]   = "games/your_game.lua",      -- your new game
+}
 ```
+
+**3. Push to GitHub** — loader picks it up automatically.
 
 ---
 
-## Min / Max Row
+## Obsidian V2 — Critical Rules
+
+> These are bugs/quirks discovered in production. Break these rules and your features will silently do nothing.
+
+### ❌ Toggles — DO NOT chain `:OnChanged()`
+
+`AddToggle()` returns the **Groupbox** (not the Toggle). Chaining `:OnChanged()` is a silent no-op.
 
 ```lua
--- Side-by-side Min / Max textboxes inside any groupbox or sub-tab proxy
-AddMinMaxRow(Group, "Generation To Sell (Min - Max)", 0, 10)
+-- WRONG: callback never fires
+group:AddToggle("AutoFarm", {}):OnChanged(function(val) ... end)
+
+-- CORRECT: use Callback inside options table
+group:AddToggle("AutoFarm", { Text = "Auto Farm", Default = false,
+    Callback = function(val)
+        -- val = true/false
+    end })
+```
+
+### ❌ Dropdowns — DO NOT chain `:OnChanged()`
+
+Same issue. `AddDropdown()` also returns the Groupbox.
+
+```lua
+-- WRONG
+group:AddDropdown("Mode", { Values = {...} }):OnChanged(fn)
+
+-- CORRECT: access via Library.Options after creation
+group:AddDropdown("Mode", { Values = {...}, Default = 1 })
+Library.Options.Mode:OnChanged(function(val) ... end)
+```
+
+### ❌ Toggle state is NOT in `Library.Options`
+
+`Library.Options` only stores Dropdowns, Inputs, Keybinds — not Toggles.
+
+```lua
+-- WRONG: always nil
+local enabled = Library.Options.AutoFarm.Value
+
+-- CORRECT: use a local flag set by Callback
+local autoFarmEnabled = false
+group:AddToggle("AutoFarm", { Callback = function(val)
+    autoFarmEnabled = val
+end })
 ```
 
 ---
 
-## Settings Tab (built-in)
+## Heartbeat Loop Helper
 
-The Settings tab is pre-built with:
+All game scripts use `trackInterval` to run periodic tasks:
 
-| Section | Contents |
-|---------|----------|
-| **Menu** (left) | Open Keybind Menu, Auto Execute, Auto Reconnect, Custom Cursor, DPI Scale, Menu Bind, Unload |
-| **Colors** (left) | Background / Main / Accent / Outline / Font color pickers, Font Face dropdown |
-| **Themes** (right) | Built-in theme list, Set as default, Custom themes (create / load / overwrite / delete) |
-| **Configuration** (right) | SaveManager config section (auto-save / load) |
+```lua
+local Connections = {}
+
+local function clearTag(tag)
+    if Connections[tag] then
+        Connections[tag]:Disconnect()
+        Connections[tag] = nil
+    end
+end
+
+local function trackInterval(tag, enabled, delay, callback)
+    clearTag(tag)
+    if not enabled then return end
+    local last = 0
+    Connections[tag] = RunService.Heartbeat:Connect(function()
+        local now = os.clock()
+        if now - last >= delay then
+            last = now
+            pcall(callback)
+        end
+    end)
+end
+
+-- Wire to a toggle:
+group:AddToggle("AutoFarm", { Default = false,
+    Callback = function(val)
+        trackInterval("FarmLoop", val, 0.5, doAutoFarm)
+    end })
+```
 
 ---
 
-## Features
+## Built-in Features (all game scripts)
 
-- **Icon-only sidebar** — compact 48 px width, no labels
-- **Auto-collapse chevron** — every groupbox collapses with a click; applies to all groupboxes automatically including those added by ThemeManager / SaveManager
-- **Sub-tab system** — icon-only tab bar inside any groupbox, with depth layer effect
-- **Android-safe caching** — Obsidian source files cached locally with `readfile`/`writefile`; graceful fallback to `HttpGet`
-- **Thin outlines** — 0.5 px stroke instead of the default 1 / 1.5 px
-- **Custom logo** — Roblox asset at top of sidebar
+| Feature | Description |
+|---------|-------------|
+| **Floating K button** | Draggable toggle to show/hide UI, works on PC and mobile |
+| **Auto-collapse groupboxes** | Every groupbox has a collapse chevron |
+| **Thin outlines** | 0.5px stroke instead of default |
+| **Obsidian caching** | Library files cached locally, no re-download on every execute |
+| **Guard re-execute** | Unloads previous instance automatically on re-execute |
 
 ---
 
 ## Credits
 
 - UI Framework: [Obsidian](https://github.com/deividcomsono/Obsidian) by deividcomsono
-- Icons: [Lucide](https://lucide.dev) via [lucide-roblox-direct](https://github.com/deividcomsono/lucide-roblox-direct)
+- Icons: [Lucide](https://lucide.dev) via lucide-roblox-direct
