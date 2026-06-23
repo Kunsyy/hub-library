@@ -262,7 +262,7 @@ end
 
 local function validateKey(key)
     -- ── DEV MODE — remove when backend is ready ──────────────────
-    return true, "free"
+    if true then return true, "free" end
     -- ─────────────────────────────────────────────────────────────
 
     local body = HttpService:JSONEncode({
