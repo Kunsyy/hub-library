@@ -594,104 +594,63 @@ local cookList, cookMeta = buildCookList()
 local cookInProgress  = false
 local autoCookEnabled = false
 
-local function findCookPrompt(serverPot)
-    for _, obj in ipairs(workspace:GetChildren()) do
-        if obj.Name == "CookingPotClientModel" and obj:IsA("Model") then
-            local ref = obj:FindFirstChild("ServerPotRef")
-            if ref and ref.Value == serverPot then
-                local base = obj:FindFirstChild("Base")
-                if base then
-                    local pa = base:FindFirstChild("PromptAttachment")
-                    if pa then return pa:FindFirstChild("CookingPotCookPrompt") end
-                end
-            end
-        end
-    end
-end
-
 local function doStartCook()
     if cookInProgress then return end
     local selectedCook = Library.Options.CookRecipe.Value
     local id = cookMeta[selectedCook]
     if not id then return end
 
-    local FS = getFoodShop()
-    if not FS then return end
-    local myPlot = FS.GetPlayerPlot(Players.LocalPlayer)
+    local myPlot = getMyPlot()
     if not myPlot then return end
 
     local pot = myPlot:FindFirstChild("CookingPotServerModel")
     if not pot then return end
 
+    local potRemote = pot:FindFirstChild("Remote")
+    if not potRemote then return end
+
     if pot:GetAttribute("ReadyToClaim") then
-        local prompt = findCookPrompt(pot)
-        if prompt then pcall(fireproximityprompt, prompt) end
+        pcall(function() potRemote:FireServer("ClaimDessert") end)
         return
     end
 
-    local ingCount    = pot:GetAttribute("IngredientCount") or 0
-    local ingRequired = pot:GetAttribute("IngredientsRequired") or 6
-    if pot:GetAttribute("Cooking") or ingCount >= ingRequired then return end
+    if pot:GetAttribute("Cooking") then return end
 
     local StartCooking = getRemote("StartCooking")
     if not StartCooking then return end
-    local ok, success = pcall(function() return StartCooking:InvokeServer(id) end)
-    if not ok or not success then return end
+    local ok, success, ingredientData = pcall(function()
+        return StartCooking:InvokeServer(id, false)
+    end)
+    if not ok or not success or type(ingredientData) ~= "table" then return end
 
     cookInProgress = true
     task.spawn(function()
-        local CookingAction = getRemote("CookingAction")
-        if not CookingAction then cookInProgress = false return end
+        task.wait(0.5)
 
-        local localUserId = Players.LocalPlayer.UserId
-        task.wait(0.6)
+        local curPot = myPlot:FindFirstChild("CookingPotServerModel")
+        local curRemote = curPot and curPot:FindFirstChild("Remote")
+        if not curRemote then cookInProgress = false return end
 
-        local iters = 0
-        while autoCookEnabled and iters < 60 do
-            local curPot = myPlot:FindFirstChild("CookingPotServerModel")
-            if not curPot then break end
-
-            local cur = curPot:GetAttribute("IngredientCount") or 0
-            local req = curPot:GetAttribute("IngredientsRequired") or 6
-            if cur >= req or curPot:GetAttribute("Cooking") then break end
-
-                    local ingFolder = myPlot:FindFirstChild("SpawnedIngredients")
-            if ingFolder then
-                for _, ing in ipairs(ingFolder:GetChildren()) do
-                    if ing:IsA("BasePart") and ing:GetAttribute("CookingOwnerUserId") == localUserId then
-                        local state = ing:GetAttribute("CookingState")
-                        if state == "OnTable" or state == "Held" then
-                            local slot = ing:GetAttribute("CookingSlotIndex")
-                            if slot then
-                                pcall(function() CookingAction:InvokeServer("PickUp", slot) end)
-                                task.wait(0.35)
-                                pcall(function() CookingAction:InvokeServer("AddToPot", nil) end)
-                                task.wait(0.5)
-                                break
-                            end
-                        end
-                    end
-                end
-            end
-
-            task.wait(0.3)
-            iters += 1
+        for _, ing in ipairs(ingredientData) do
+            if not autoCookEnabled then break end
+            pcall(function() curRemote:FireServer("AddIngredient", ing.ingredientName) end)
+            task.wait(0.35)
         end
 
-            local elapsed = 0
+        local elapsed = 0
         while autoCookEnabled and elapsed < 300 do
-            local curPot = myPlot:FindFirstChild("CookingPotServerModel")
-            if not curPot then break end
-            if curPot:GetAttribute("ReadyToClaim") then
+            local p = myPlot:FindFirstChild("CookingPotServerModel")
+            if not p then break end
+            if p:GetAttribute("ReadyToClaim") then
                 task.wait(0.3)
-                local prompt = findCookPrompt(curPot)
-                if prompt then pcall(fireproximityprompt, prompt) end
+                local r = p:FindFirstChild("Remote")
+                if r then pcall(function() r:FireServer("ClaimDessert") end) end
                 break
             end
-            if not curPot:GetAttribute("Cooking") and (curPot:GetAttribute("IngredientCount") or 0) == 0 then
+            if not p:GetAttribute("Cooking") and (p:GetAttribute("IngredientCount") or 0) == 0 then
                 break
             end
-            task.wait(1) ; elapsed += 1
+            task.wait(1) elapsed += 1
         end
 
         cookInProgress = false
